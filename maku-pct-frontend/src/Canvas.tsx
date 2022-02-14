@@ -1,7 +1,7 @@
 import React from "react";
 import Sketch from "react-p5";
 import p5Types from "p5";
-import Bullet from "./maku-classes/Bullet";
+import Pattern from "./maku-classes/Pattern";
 
 interface CanvasProps {
     // figure out props
@@ -9,37 +9,45 @@ interface CanvasProps {
 
 const Canvas: React.FC<any> = () => {
     // we don't need to use states when dealing with anything the sketch handles itself.
-    let bullets: Bullet[];
-    let width: number;
-    let height: number;
+    let patterns: Pattern[];
     const setup = (p5: p5Types, canvasParentRef: Element) => {
+        p5.disableFriendlyErrors = true;
         p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef);
         p5.angleMode(p5.RADIANS);
-        width = p5.windowWidth;
-        height = p5.windowHeight;
-        bullets = [];
+        patterns = [];
+        patterns.push(new Pattern({
+            fireInterval: 10,
+            stackInterval: 1,
+            spokeCount: 5,
+            initAngle: 0,
+            initPos: p5.createVector(p5.windowWidth / 2, p5.windowHeight / 2),
+            bulletSpeed: 8,
+            bulletAccel: -0.05,
+            rotationSpeed: (p5.TWO_PI) / 60,
+            color: p5.color(0, 255, 0)
+        }));
+        patterns.push(new Pattern({
+            fireInterval: 10,
+            stackInterval: 1,
+            spokeCount: 5,
+            initAngle: 0,
+            initPos: p5.createVector(p5.windowWidth / 2, p5.windowHeight / 2),
+            bulletSpeed: 8,
+            bulletAccel: -0.05,
+            rotationSpeed: -(p5.TWO_PI) / 60,
+            color: p5.color(0, 255, 255)
+        }));
     }
 
     const draw = (p5: p5Types) => {
         p5.background(p5.color(0, 0, 0));
-        bullets.push(new Bullet(
-            p5.color(0, 255, 89),
-            p5.createVector(width / 2, height / 2),
-            10,
-            -0.05,
-            p5.atan2(p5.mouseY - (height / 2), p5.mouseX - (width / 2))));
-        bullets.forEach((bullet: Bullet) => {
-            bullet.update(p5);
-            bullet.draw(p5);
+        patterns.forEach((pattern: Pattern) => {
+            pattern.draw(p5);
+            pattern.update(p5);
         });
-        bullets = bullets.filter((bullet: Bullet) => checkInBounds(bullet));
-        console.log(bullets.length);
+        // console.log(patterns[0].source.bullets.length);
     }
 
-    const checkInBounds = (bullet: Bullet) => {
-        return (0 <= bullet.pos.x && bullet.pos.x <= width) 
-        && (0 <= bullet.pos.y && bullet.pos.y <= height);
-    }
 
     return <Sketch setup={setup} draw={draw} />;
 }
