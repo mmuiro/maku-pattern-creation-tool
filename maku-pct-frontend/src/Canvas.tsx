@@ -12,30 +12,44 @@ const Canvas: React.FC<any> = () => {
     let patterns: Pattern[];
     const setup = (p5: p5Types, canvasParentRef: Element) => {
         p5.disableFriendlyErrors = true;
-        p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef);
+        p5.createCanvas(800, 800).parent(canvasParentRef);
         p5.angleMode(p5.RADIANS);
         patterns = [];
         patterns.push(new Pattern({
-            fireInterval: 10,
-            stackInterval: 1,
+            fireInterval: 1,
+            stackInterval: 2,
             spokeCount: 5,
             initAngle: 0,
-            initPos: p5.createVector(p5.windowWidth / 2, p5.windowHeight / 2),
+            initPos: p5.createVector(p5.width / 2, p5.height / 2),
             bulletSpeed: 8,
-            bulletAccel: -0.05,
-            rotationSpeed: (p5.TWO_PI) / 60,
-            color: p5.color(0, 255, 0)
+            bulletAccel: -0.075,
+            rotationSpeed: (p5.TWO_PI) / 240,
+            color: p5.color(0, 255, 0),
+            stackLength: 4
         }));
         patterns.push(new Pattern({
-            fireInterval: 10,
-            stackInterval: 1,
+            fireInterval: 1,
+            stackInterval: 2,
             spokeCount: 5,
             initAngle: 0,
-            initPos: p5.createVector(p5.windowWidth / 2, p5.windowHeight / 2),
+            initPos: p5.createVector(p5.width / 2, p5.height / 2),
             bulletSpeed: 8,
-            bulletAccel: -0.05,
-            rotationSpeed: -(p5.TWO_PI) / 60,
-            color: p5.color(0, 255, 255)
+            bulletAccel: -0.075,
+            rotationSpeed: -(p5.TWO_PI) / 240,
+            color: p5.color(0, 255, 255),
+            stackLength: 4
+        }));
+        patterns.push(new Pattern({
+            fireInterval: 60,
+            stackInterval: 1,
+            spokeCount: 60,
+            initAngle: 0,
+            initPos: p5.createVector(p5.width / 2, p5.height / 2),
+            bulletSpeed: 8,
+            bulletAccel: -0.075,
+            rotationSpeed: 0,
+            color: p5.color(0, 255, 255),
+            stackLength: 2
         }));
     }
 
@@ -45,6 +59,7 @@ const Canvas: React.FC<any> = () => {
             pattern.draw(p5);
             pattern.update(p5);
         });
+        p5.frameRate(60);
         // console.log(patterns[0].source.bullets.length);
     }
 

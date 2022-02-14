@@ -14,6 +14,8 @@ export default class Bullet {
     radius: number;
     maxSpeed: number;
     minSpeed: number;
+    lifespan: number;
+    framesPassed: number;
     constructor(color: p5Types.Color, 
                 initPos: p5Types.Vector, 
                 initSpeed: number, 
@@ -21,7 +23,8 @@ export default class Bullet {
                 initAngle: number,
                 radius: number,
                 maxSpeed: number,
-                minSpeed: number) {
+                minSpeed: number,
+                lifespan: number) {
         this.color = color;
         this.pos = initPos;
         this.speed = initSpeed;
@@ -30,6 +33,8 @@ export default class Bullet {
         this.radius = radius;
         this.maxSpeed = maxSpeed;
         this.minSpeed = minSpeed;
+        this.lifespan = lifespan;
+        this.framesPassed = 0;
     }
 
     update(p5: p5Types) {
@@ -41,17 +46,20 @@ export default class Bullet {
         } else if (this.speed < this.minSpeed) {
             this.speed = this.minSpeed;
         }
+        this.framesPassed++;
     }
 
     draw(p5: p5Types) {
         p5.push();
         p5.noStroke();
-        p5.fill(p5.color(255,255,255));
+        let alpha = Math.sqrt(1 - (this.framesPassed / this.lifespan)) * 255;
+        this.color.setAlpha(alpha);
+        p5.fill(p5.color(255,255,255, alpha));
+        //p5.stroke(this.color);
         const drawingContext: CanvasRenderingContext2D = getDrawingContext(p5)!;
         drawingContext.shadowBlur = 12;
         drawingContext.shadowColor = this.color.toString();
         p5.circle(this.pos.x, this.pos.y, this.radius);
-        drawingContext.shadowBlur = 0;
         p5.pop();
     }
 }

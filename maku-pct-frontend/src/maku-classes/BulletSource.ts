@@ -12,6 +12,7 @@ export default class BulletSource {
     bulletRadius: number;
     bulletMaxSpeed: number;
     bulletMinSpeed: number;
+    bulletLifespan: number;
     bullets: Bullet[];
     
     constructor(initAngle: number,
@@ -22,7 +23,8 @@ export default class BulletSource {
                 bulletAccel: number,
                 bulletRadius: number,
                 bulletMaxSpeed: number,
-                bulletMinSpeed: number) {
+                bulletMinSpeed: number,
+                bulletLifespan: number) {
         this.bullets = [];
         this.defaultAngle = initAngle;
         this.angle = initAngle;
@@ -34,17 +36,17 @@ export default class BulletSource {
         this.bulletRadius = bulletRadius;
         this.bulletMaxSpeed = bulletMaxSpeed;
         this.bulletMinSpeed = bulletMinSpeed;
-        console.log(this);
+        this.bulletLifespan = bulletLifespan;
     }
 
     update(p5: p5Types) {
         this.bullets.forEach((bullet: Bullet) => {
-            // console.log(bullet);
             bullet.update(p5);
         });
         this.bullets = this.bullets.filter((bullet: Bullet) => {
             return (bullet.pos.x >= 0 && bullet.pos.x <= p5.width)
-            && (bullet.pos.y >= 0 && bullet.pos.y <= p5.height);
+            && (bullet.pos.y >= 0 && bullet.pos.y <= p5.height) 
+            && (bullet.framesPassed < bullet.lifespan);
         });
         this.rotate(this.rotationSpeed);
         this.defaultAngle += this.rotationSpeed;
@@ -68,7 +70,8 @@ export default class BulletSource {
                         this.angle,
                         this.bulletRadius,
                         this.bulletMaxSpeed,
-                        this.bulletMinSpeed));
+                        this.bulletMinSpeed,
+                        this.bulletLifespan));
     }
 
     resetAngle() {

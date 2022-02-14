@@ -1,13 +1,14 @@
 import BulletSource from "./BulletSource";
 import p5Types from "p5";
 
-const DEFAULT_RADIUS: number = 10;
+const DEFAULT_RADIUS: number = 8;
 const DEFAULT_MAX_SPEED: number = 20;
-const DEFAULT_MIN_SPEED: number = 2;
+const DEFAULT_MIN_SPEED: number = 0;
 const DEFAULT_SPREAD_ANGLE: number = 6.28318530717958647693;
 const DEFAULT_DURATION:number = Infinity;
 const DEFAULT_START_DELAY: number = 0;
-const DEFAULT_STACK_LENGTH: number = 0;
+const DEFAULT_STACK_LENGTH: number = 1;
+const DEFAULT_LIFESPAN: number = 120;
 
 interface PatternArgs {
     startDelay?: number,
@@ -25,7 +26,8 @@ interface PatternArgs {
     color: p5Types.Color,
     bulletRadius?: number,
     bulletMaxSpeed?: number,
-    bulletMinSpeed?: number
+    bulletMinSpeed?: number,
+    bulletLifeSpan?: number
 }
 
 export default class Pattern {
@@ -51,7 +53,7 @@ export default class Pattern {
         if (!args.bulletRadius) args.bulletRadius = DEFAULT_RADIUS;
         if (!args.bulletMaxSpeed) args.bulletMaxSpeed = DEFAULT_MAX_SPEED;
         if (!args.bulletMinSpeed) args.bulletMinSpeed = DEFAULT_MIN_SPEED;
-        console.log(args.rotationSpeed);
+        if (!args.bulletLifeSpan) args.bulletLifeSpan = DEFAULT_LIFESPAN;
         this.passedFrames = 0;
         this.startDelay = args.startDelay;
         this.duration = args.duration;
@@ -71,27 +73,25 @@ export default class Pattern {
             args.bulletAccel,
             args.bulletRadius,
             args.bulletMaxSpeed,
-            args.bulletMinSpeed);
-        console.log(this);
+            args.bulletMinSpeed,
+            args.bulletLifeSpan);
     }
 
     update(p5: p5Types) {
         if (this.passedFrames >= this.startDelay) {
             this.source.update(p5);
-            if (this.firing && this.firingFrames === this.stackInterval) {
+            if (!this.firing && this.firingFrames === 0) {
+                this.firing = true;
+                this.stackCounter = 0;
+            }
+            if (this.firing && this.firingFrames === 0) {
                 this.fire();
-                this.firingFrames = 0;
                 this.stackCounter++;
                 if (this.stackCounter === this.stackLength) {
                     this.firing = false;
                 }
-            } else if (!this.firing && this.firingFrames === this.fireInterval) {
-                this.firing = true;
-                this.fire();
-                this.stackCounter = 0;
-                this.firingFrames = 0;
-            }
-            this.firingFrames++;
+            } 
+            this.firingFrames = (this.firingFrames + 1) % (this.firing ? this.stackInterval : this.fireInterval);
         }
         this.passedFrames++;
     }
@@ -104,7 +104,6 @@ export default class Pattern {
         let angleDivide = this.spreadAngle / this.spokeCount;
         for (let i = 0; i < this.spokeCount; i++) {
             this.source.fire();
-            // console.log('fire');
             this.source.rotate(angleDivide);
         }
         this.source.resetAngle();
