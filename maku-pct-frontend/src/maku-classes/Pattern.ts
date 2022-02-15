@@ -1,5 +1,7 @@
 import BulletSource from "./BulletSource";
 import p5Types from "p5";
+import Path from "./Path";
+import StillPath from "./StillPath";
 
 const DEFAULT_RADIUS: number = 8;
 const DEFAULT_MAX_SPEED: number = 20;
@@ -27,7 +29,8 @@ interface PatternArgs {
     bulletRadius?: number,
     bulletMaxSpeed?: number,
     bulletMinSpeed?: number,
-    bulletLifeSpan?: number
+    bulletLifeSpan?: number,
+    sourcePath?: Path
 }
 
 export default class Pattern {
@@ -54,6 +57,9 @@ export default class Pattern {
         if (!args.bulletMaxSpeed) args.bulletMaxSpeed = DEFAULT_MAX_SPEED;
         if (!args.bulletMinSpeed) args.bulletMinSpeed = DEFAULT_MIN_SPEED;
         if (!args.bulletLifeSpan) args.bulletLifeSpan = DEFAULT_LIFESPAN;
+        if (!args.sourcePath) {
+            args.sourcePath = new StillPath(args.initPos.copy(), Infinity);
+        }
         this.passedFrames = 0;
         this.startDelay = args.startDelay;
         this.duration = args.duration;
@@ -74,7 +80,8 @@ export default class Pattern {
             args.bulletRadius,
             args.bulletMaxSpeed,
             args.bulletMinSpeed,
-            args.bulletLifeSpan);
+            args.bulletLifeSpan,
+            args.sourcePath);
     }
 
     update(p5: p5Types) {

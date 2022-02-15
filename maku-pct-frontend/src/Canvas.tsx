@@ -2,6 +2,8 @@ import React from "react";
 import Sketch from "react-p5";
 import p5Types from "p5";
 import Pattern from "./maku-classes/Pattern";
+import EllipsePath from "./maku-classes/EllipsePath";
+import BezierPath from "./maku-classes/BezierPath";
 
 interface CanvasProps {
     // figure out props
@@ -39,6 +41,12 @@ const Canvas: React.FC<any> = () => {
             color: p5.color(0, 255, 255),
             stackLength: 4
         }));
+        let points = [];
+        let controlPoints = [];
+        for (let i = 0; i < 5; i++) {
+            points.push(p5.createVector(Math.random() * p5.width, Math.random() * p5.height));
+            controlPoints.push(p5.createVector(Math.random() * p5.width, Math.random() * p5.height));
+        }
         patterns.push(new Pattern({
             fireInterval: 60,
             stackInterval: 1,
@@ -48,8 +56,9 @@ const Canvas: React.FC<any> = () => {
             bulletSpeed: 8,
             bulletAccel: -0.075,
             rotationSpeed: 0,
-            color: p5.color(0, 255, 255),
-            stackLength: 2
+            color: p5.color(255, 0, 255),
+            stackLength: 2,
+            sourcePath: new BezierPath(points, controlPoints, 120)
         }));
     }
 
