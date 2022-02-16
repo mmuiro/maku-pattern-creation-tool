@@ -1,12 +1,13 @@
 import p5Types from "p5";
 import Bullet from "./Bullet";
 import Path from "./Path";
+import Vec2D from "./Vec2D";
 
 export default class BulletSource {
     defaultAngle: number;
     angle: number; // in radians
     rotationSpeed: number; // radians per frame
-    position: p5Types.Vector;
+    position: Vec2D;
     bulletColor: p5Types.Color;
     bulletSpeed: number;
     bulletAccel: number;
@@ -20,7 +21,7 @@ export default class BulletSource {
     
     constructor(initAngle: number,
                 rotationSpeed: number,
-                initPos: p5Types.Vector,
+                initPos: Vec2D,
                 bulletColor: p5Types.Color,
                 bulletSpeed: number,
                 bulletAccel: number,

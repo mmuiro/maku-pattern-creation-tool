@@ -4,6 +4,7 @@ import p5Types from "p5";
 import Pattern from "./maku-classes/Pattern";
 import EllipsePath from "./maku-classes/EllipsePath";
 import BezierPath from "./maku-classes/BezierPath";
+import Vec2D from "./maku-classes/Vec2D";
 
 interface CanvasProps {
     // figure out props
@@ -22,7 +23,7 @@ const Canvas: React.FC<any> = () => {
             stackInterval: 2,
             spokeCount: 5,
             initAngle: 0,
-            initPos: p5.createVector(p5.width / 2, p5.height / 2),
+            initPos: new Vec2D(p5.width / 2, p5.height / 2),
             bulletSpeed: 8,
             bulletAccel: -0.075,
             rotationSpeed: (p5.TWO_PI) / 240,
@@ -34,7 +35,7 @@ const Canvas: React.FC<any> = () => {
             stackInterval: 2,
             spokeCount: 5,
             initAngle: 0,
-            initPos: p5.createVector(p5.width / 2, p5.height / 2),
+            initPos: new Vec2D(p5.width / 2, p5.height / 2),
             bulletSpeed: 8,
             bulletAccel: -0.075,
             rotationSpeed: -(p5.TWO_PI) / 240,
@@ -44,21 +45,21 @@ const Canvas: React.FC<any> = () => {
         let points = [];
         let controlPoints = [];
         for (let i = 0; i < 5; i++) {
-            points.push(p5.createVector(Math.random() * p5.width, Math.random() * p5.height));
-            controlPoints.push(p5.createVector(Math.random() * p5.width, Math.random() * p5.height));
+            points.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
+            controlPoints.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
         }
         patterns.push(new Pattern({
             fireInterval: 60,
             stackInterval: 1,
             spokeCount: 60,
             initAngle: 0,
-            initPos: p5.createVector(p5.width / 2, p5.height / 2),
+            initPos: new Vec2D(p5.width / 2, p5.height / 2),
             bulletSpeed: 8,
             bulletAccel: -0.075,
             rotationSpeed: 0,
             color: p5.color(255, 0, 255),
             stackLength: 2,
-            sourcePath: new BezierPath(points, controlPoints, 120)
+            sourcePath: new BezierPath(points, controlPoints, 120, p5)
         }));
     }
 

@@ -1,4 +1,5 @@
 import p5Types from "p5";
+import Vec2D from "./Vec2D";
 import getDrawingContext from "../p5-utils/getDrawingContext";
 
 const DEFAULT_RADIUS: number = 10;
@@ -7,7 +8,7 @@ const DEFAULT_MIN_SPEED: number = 0;
 
 export default class Bullet {
     color: p5Types.Color;
-    pos: p5Types.Vector;
+    pos: Vec2D;
     speed: number;
     accel: number;
     angle: number; // in radians
@@ -17,7 +18,7 @@ export default class Bullet {
     lifespan: number;
     framesPassed: number;
     constructor(color: p5Types.Color, 
-                initPos: p5Types.Vector, 
+                initPos: Vec2D, 
                 initSpeed: number, 
                 initAccel: number,
                 initAngle: number,

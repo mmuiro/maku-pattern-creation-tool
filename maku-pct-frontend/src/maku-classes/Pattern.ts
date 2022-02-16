@@ -2,6 +2,7 @@ import BulletSource from "./BulletSource";
 import p5Types from "p5";
 import Path from "./Path";
 import StillPath from "./StillPath";
+import Vec2D from "./Vec2D";
 
 const DEFAULT_RADIUS: number = 8;
 const DEFAULT_MAX_SPEED: number = 20;
@@ -20,7 +21,7 @@ interface PatternArgs {
     stackLength?: number,
     spokeCount: number,
     initAngle: number,
-    initPos: p5Types.Vector,
+    initPos: Vec2D,
     bulletSpeed: number,
     bulletAccel: number,
     rotationSpeed: number,
