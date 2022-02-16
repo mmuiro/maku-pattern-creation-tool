@@ -13,4 +13,8 @@ export default class StillPath implements Path {
     getCoordsAt(t: number, p5: p5Types): Vec2D {
         return new Vec2D(this.position.x, this.position.y);
     }
+    
+    draw(p5: p5Types): void {
+        
+    }
 }

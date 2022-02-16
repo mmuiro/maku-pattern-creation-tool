@@ -12,17 +12,19 @@ const DEFAULT_DURATION:number = Infinity;
 const DEFAULT_START_DELAY: number = 0;
 const DEFAULT_STACK_LENGTH: number = 1;
 const DEFAULT_LIFESPAN: number = 120;
+const DEFAULT_ANGLE: number = 0;
+const DEFAULT_PATH_PAUSE: number = 0;
 
 interface PatternArgs {
     startDelay?: number,
     fireInterval: number,
     duration?: number,
-    stackInterval: number,
     stackLength?: number,
     spokeCount: number,
-    initAngle: number,
+    initAngle?: number,
     initPos: Vec2D,
-    bulletSpeed: number,
+    bulletLowerSpeed: number,
+    bulletUpperSpeed?: number,
     bulletAccel: number,
     rotationSpeed: number,
     spreadAngle?: number,
@@ -31,7 +33,8 @@ interface PatternArgs {
     bulletMaxSpeed?: number,
     bulletMinSpeed?: number,
     bulletLifeSpan?: number,
-    sourcePath?: Path
+    sourcePath?: Path,
+    pathPause?: number
 }
 
 export default class Pattern {
@@ -40,13 +43,9 @@ export default class Pattern {
     startDelay: number;
     duration: number;
     fireInterval: number;
-    stackLength: number;
-    stackInterval: number;
-    stackCounter: number;
     passedFrames: number;
     spokeCount: number;
     spreadAngle: number;
-    firing: Boolean;
     firingFrames: number;
 
     constructor(args: PatternArgs) {
@@ -58,6 +57,9 @@ export default class Pattern {
         if (!args.bulletMaxSpeed) args.bulletMaxSpeed = DEFAULT_MAX_SPEED;
         if (!args.bulletMinSpeed) args.bulletMinSpeed = DEFAULT_MIN_SPEED;
         if (!args.bulletLifeSpan) args.bulletLifeSpan = DEFAULT_LIFESPAN;
+        if (!args.initAngle) args.initAngle = DEFAULT_ANGLE;
+        if (!args.bulletUpperSpeed) args.bulletUpperSpeed = args.bulletLowerSpeed;
+        if (!args.pathPause) args.pathPause = DEFAULT_PATH_PAUSE;
         if (!args.sourcePath) {
             args.sourcePath = new StillPath(args.initPos.copy(), Infinity);
         }
@@ -65,41 +67,32 @@ export default class Pattern {
         this.startDelay = args.startDelay;
         this.duration = args.duration;
         this.fireInterval = args.fireInterval;
-        this.stackLength = args.stackLength;
-        this.stackInterval = args.stackInterval;
         this.spokeCount = args.spokeCount;
         this.spreadAngle = args.spreadAngle;
-        this.firing = false;
         this.firingFrames = 0;
-        this.stackCounter = 0;
         this.source = new BulletSource(args.initAngle,
-            args.rotationSpeed,
-            args.initPos,
-            args.color,
-            args.bulletSpeed,
-            args.bulletAccel,
-            args.bulletRadius,
-            args.bulletMaxSpeed,
-            args.bulletMinSpeed,
-            args.bulletLifeSpan,
-            args.sourcePath);
+                                    args.rotationSpeed,
+                                    args.initPos,
+                                    args.color,
+                                    args.bulletLowerSpeed,
+                                    args.bulletUpperSpeed,
+                                    args.bulletAccel,
+                                    args.bulletRadius,
+                                    args.bulletMaxSpeed,
+                                    args.bulletMinSpeed,
+                                    args.bulletLifeSpan,
+                                    args.stackLength,
+                                    args.sourcePath,
+                                    args.pathPause);
     }
 
     update(p5: p5Types) {
         if (this.passedFrames >= this.startDelay) {
             this.source.update(p5);
-            if (!this.firing && this.firingFrames === 0) {
-                this.firing = true;
-                this.stackCounter = 0;
+            if (!this.source.paused) {
+                if (this.firingFrames === 0) this.fire();
+                this.firingFrames = (this.firingFrames + 1) % this.fireInterval;
             }
-            if (this.firing && this.firingFrames === 0) {
-                this.fire();
-                this.stackCounter++;
-                if (this.stackCounter === this.stackLength) {
-                    this.firing = false;
-                }
-            } 
-            this.firingFrames = (this.firingFrames + 1) % (this.firing ? this.stackInterval : this.fireInterval);
         }
         this.passedFrames++;
     }

@@ -9,41 +9,54 @@ export default class BulletSource {
     rotationSpeed: number; // radians per frame
     position: Vec2D;
     bulletColor: p5Types.Color;
-    bulletSpeed: number;
+    bulletLowerSpeed: number;
+    bulletUpperSpeed: number;
     bulletAccel: number;
     bulletRadius: number;
     bulletMaxSpeed: number;
     bulletMinSpeed: number;
     bulletLifespan: number;
+    bulletStackLength: number;
     bullets: Bullet[];
     path: Path;
     framesPassed: number;
-    
+    pathPause: number;
+    pauseFrames: number;
+    paused: Boolean;
+
     constructor(initAngle: number,
                 rotationSpeed: number,
                 initPos: Vec2D,
                 bulletColor: p5Types.Color,
-                bulletSpeed: number,
+                bulletLowerSpeed: number,
+                bulletUpperSpeed: number,
                 bulletAccel: number,
                 bulletRadius: number,
                 bulletMaxSpeed: number,
                 bulletMinSpeed: number,
                 bulletLifespan: number,
-                path: Path) {
+                bulletStackLength: number,
+                path: Path,
+                pathPause: number) {
         this.bullets = [];
         this.defaultAngle = initAngle;
         this.angle = initAngle;
         this.rotationSpeed = rotationSpeed;
         this.position = initPos;
         this.bulletColor = bulletColor;
-        this.bulletSpeed = bulletSpeed;
+        this.bulletLowerSpeed = bulletLowerSpeed;
+        this.bulletUpperSpeed = bulletUpperSpeed;
         this.bulletAccel = bulletAccel;
         this.bulletRadius = bulletRadius;
         this.bulletMaxSpeed = bulletMaxSpeed;
         this.bulletMinSpeed = bulletMinSpeed;
         this.bulletLifespan = bulletLifespan;
+        this.bulletStackLength = bulletStackLength;
         this.path = path;
+        this.pathPause = pathPause; 
         this.framesPassed = 0;
+        this.pauseFrames = 0;
+        this.paused = false;
     }
 
     update(p5: p5Types) {
@@ -55,10 +68,21 @@ export default class BulletSource {
             && (bullet.pos.y >= 0 && bullet.pos.y <= p5.height) 
             && (bullet.framesPassed < bullet.lifespan);
         });
-        this.rotate(this.rotationSpeed);
-        this.position = this.path.getCoordsAt(this.framesPassed, p5);
-        this.defaultAngle += this.rotationSpeed;
-        this.framesPassed++;
+        if (!this.paused) {
+            this.position = this.path.getCoordsAt(this.framesPassed, p5);
+            this.rotate(this.rotationSpeed);
+            this.defaultAngle += this.rotationSpeed;
+            this.framesPassed++;
+            if (this.framesPassed % this.path.period === 0 && this.pathPause > 0) {
+                this.paused = true;
+            }
+        } else {
+            this.pauseFrames++;
+            if (this.pauseFrames === this.pathPause) {
+                this.pauseFrames = 0;
+                this.paused = false;
+            }
+        }
     }
 
     rotate(rotationAngel: number) {
@@ -73,20 +97,25 @@ export default class BulletSource {
         p5.push();
         p5.noStroke();
         p5.fill(p5.color(255, 255, 255));
-        p5.circle(this.position.x, this.position.y, 10);
+        // p5.circle(this.position.x, this.position.y, 10);
+        // this.path.draw(p5);
         p5.pop();
     }
 
     fire() {
-        this.bullets.push(new Bullet(this.bulletColor, 
-                        this.position.copy(),
-                        this.bulletSpeed,
-                        this.bulletAccel,
-                        this.angle,
-                        this.bulletRadius,
-                        this.bulletMaxSpeed,
-                        this.bulletMinSpeed,
-                        this.bulletLifespan));
+        let speedInc = (this.bulletUpperSpeed - this.bulletLowerSpeed) / this.bulletStackLength;
+        for (let i = 0; i < this.bulletStackLength; i++) {
+            let speed = this.bulletLowerSpeed + i * speedInc;
+            this.bullets.push(new Bullet(this.bulletColor, 
+                this.position.copy(),
+                speed,
+                this.bulletAccel,
+                this.angle,
+                this.bulletRadius,
+                this.bulletMaxSpeed,
+                this.bulletMinSpeed,
+                this.bulletLifespan));
+        }
     }
 
     resetAngle() {

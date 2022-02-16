@@ -13,4 +13,8 @@ export default class LinePath implements Path {
     getCoordsAt(t: number, p5: p5Types): Vec2D {
         return new Vec2D(0, 0);
     }
+
+    draw(p5: p5Types): void {
+        
+    }
 }

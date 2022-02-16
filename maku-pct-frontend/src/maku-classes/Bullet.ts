@@ -56,10 +56,10 @@ export default class Bullet {
         let alpha = Math.sqrt(1 - (this.framesPassed / this.lifespan)) * 255;
         this.color.setAlpha(alpha);
         p5.fill(p5.color(255,255,255, alpha));
-        //p5.stroke(this.color);
-        const drawingContext: CanvasRenderingContext2D = getDrawingContext(p5)!;
-        drawingContext.shadowBlur = 12;
-        drawingContext.shadowColor = this.color.toString();
+        p5.stroke(this.color);
+        //const drawingContext: CanvasRenderingContext2D = getDrawingContext(p5)!;
+        //drawingContext.shadowBlur = 12;
+        //drawingContext.shadowColor = this.color.toString();
         p5.circle(this.pos.x, this.pos.y, this.radius);
         p5.pop();
     }

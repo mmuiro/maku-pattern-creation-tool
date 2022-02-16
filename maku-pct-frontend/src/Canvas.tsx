@@ -5,6 +5,7 @@ import Pattern from "./maku-classes/Pattern";
 import EllipsePath from "./maku-classes/EllipsePath";
 import BezierPath from "./maku-classes/BezierPath";
 import Vec2D from "./maku-classes/Vec2D";
+import StillPath from "./maku-classes/StillPath";
 
 interface CanvasProps {
     // figure out props
@@ -20,47 +21,42 @@ const Canvas: React.FC<any> = () => {
         patterns = [];
         patterns.push(new Pattern({
             fireInterval: 1,
-            stackInterval: 2,
-            spokeCount: 5,
-            initAngle: 0,
+            spokeCount: 6,
             initPos: new Vec2D(p5.width / 2, p5.height / 2),
-            bulletSpeed: 8,
-            bulletAccel: -0.075,
-            rotationSpeed: (p5.TWO_PI) / 240,
+            bulletLowerSpeed: 8,
+            bulletAccel: -0.05,
+            bulletRadius: 8,
+            initAngle: p5.HALF_PI,
+            rotationSpeed: 0.05,
+            bulletLifeSpan: 120,
             color: p5.color(0, 255, 0),
-            stackLength: 4
         }));
-        patterns.push(new Pattern({
-            fireInterval: 1,
-            stackInterval: 2,
-            spokeCount: 5,
-            initAngle: 0,
-            initPos: new Vec2D(p5.width / 2, p5.height / 2),
-            bulletSpeed: 8,
-            bulletAccel: -0.075,
-            rotationSpeed: -(p5.TWO_PI) / 240,
-            color: p5.color(0, 255, 255),
-            stackLength: 4
-        }));
-        let points = [];
+        /* let points = [];
         let controlPoints = [];
-        for (let i = 0; i < 5; i++) {
-            points.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
-            controlPoints.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
-        }
-        patterns.push(new Pattern({
-            fireInterval: 60,
-            stackInterval: 1,
-            spokeCount: 60,
-            initAngle: 0,
-            initPos: new Vec2D(p5.width / 2, p5.height / 2),
-            bulletSpeed: 8,
-            bulletAccel: -0.075,
-            rotationSpeed: 0,
-            color: p5.color(255, 0, 255),
-            stackLength: 2,
-            sourcePath: new BezierPath(points, controlPoints, 120, p5)
-        }));
+        for (let k = 0; k < 5; k++) {
+            points = [];
+            controlPoints = [];
+            for (let i = 0; i < 8; i++) {
+                points.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
+                controlPoints.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
+            }
+            patterns.push(new Pattern({
+                startDelay: Math.floor(Math.random() * 60),
+                fireInterval: 60,
+                spokeCount: 20,
+                initAngle: 0,
+                initPos: new Vec2D(p5.width / 2, p5.height / 2),
+                bulletLowerSpeed: 6,
+                bulletUpperSpeed: 8,
+                bulletAccel: -0.075,
+                rotationSpeed: 0.1,
+                color: p5.color(Math.ceil(Math.random() * 255), 
+                                Math.ceil(Math.random() * 255), 
+                                Math.ceil(Math.random() * 255)),
+                stackLength: 4,
+                sourcePath: new BezierPath(points, controlPoints, 180, p5)
+            }));
+        }*/
     }
 
     const draw = (p5: p5Types) => {

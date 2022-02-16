@@ -19,4 +19,8 @@ export default class EllipsePath implements Path {
         return new Vec2D(this.center.x + this.a * Math.cos((t / this.period) * p5.TWO_PI), 
                                 this.center.y + this.b * Math.sin((t / this.period) * p5.TWO_PI));
     }
+    
+    draw(p5: p5Types): void {
+        
+    }
 }
