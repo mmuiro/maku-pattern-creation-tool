@@ -7,12 +7,17 @@ export default class BulletSource {
     defaultAngle: number;
     angle: number; // in radians
     rotationSpeed: number; // radians per frame
+    baseRotationSpeed: number;
+    reverseRotPeriod: number;
+    smoothReversing: Boolean;
     position: Vec2D;
     bulletColor: p5Types.Color;
     bulletLowerSpeed: number;
     bulletUpperSpeed: number;
     bulletAccel: number;
     bulletRadius: number;
+    bulletLowerRotSpeed: number;
+    bulletUpperRotSpeed: number;
     bulletMaxSpeed: number;
     bulletMinSpeed: number;
     bulletLifespan: number;
@@ -26,12 +31,16 @@ export default class BulletSource {
 
     constructor(initAngle: number,
                 rotationSpeed: number,
+                reverseRotPeriod: number,
+                smoothReversing: Boolean,
                 initPos: Vec2D,
                 bulletColor: p5Types.Color,
                 bulletLowerSpeed: number,
                 bulletUpperSpeed: number,
                 bulletAccel: number,
                 bulletRadius: number,
+                bulletLowerRotSpeed: number,
+                bulletUpperRotSpeed: number,
                 bulletMaxSpeed: number,
                 bulletMinSpeed: number,
                 bulletLifespan: number,
@@ -42,12 +51,17 @@ export default class BulletSource {
         this.defaultAngle = initAngle;
         this.angle = initAngle;
         this.rotationSpeed = rotationSpeed;
+        this.baseRotationSpeed = rotationSpeed;
+        this.reverseRotPeriod = reverseRotPeriod;
+        this.smoothReversing = smoothReversing;
         this.position = initPos;
         this.bulletColor = bulletColor;
         this.bulletLowerSpeed = bulletLowerSpeed;
         this.bulletUpperSpeed = bulletUpperSpeed;
         this.bulletAccel = bulletAccel;
         this.bulletRadius = bulletRadius;
+        this.bulletLowerRotSpeed = bulletLowerRotSpeed;
+        this.bulletUpperRotSpeed = bulletUpperRotSpeed;
         this.bulletMaxSpeed = bulletMaxSpeed;
         this.bulletMinSpeed = bulletMinSpeed;
         this.bulletLifespan = bulletLifespan;
@@ -73,6 +87,12 @@ export default class BulletSource {
             this.rotate(this.rotationSpeed);
             this.defaultAngle += this.rotationSpeed;
             this.framesPassed++;
+            if (this.smoothReversing) {
+                this.rotationSpeed = this.baseRotationSpeed * Math.cos(this.framesPassed / this.reverseRotPeriod * p5.PI);
+            }
+            else if (this.framesPassed % this.reverseRotPeriod === 0) {
+                this.rotationSpeed *= -1;
+            }
             if (this.framesPassed % this.path.period === 0 && this.pathPause > 0) {
                 this.paused = true;
             }
@@ -104,13 +124,16 @@ export default class BulletSource {
 
     fire() {
         let speedInc = (this.bulletUpperSpeed - this.bulletLowerSpeed) / this.bulletStackLength;
+        let rotSpeedInc = (this.bulletUpperRotSpeed - this.bulletLowerRotSpeed) / this.bulletStackLength;
         for (let i = 0; i < this.bulletStackLength; i++) {
             let speed = this.bulletLowerSpeed + i * speedInc;
+            let rotSpeed = this.bulletLowerRotSpeed + i * rotSpeedInc; // needs change to be like speed
             this.bullets.push(new Bullet(this.bulletColor, 
                 this.position.copy(),
                 speed,
                 this.bulletAccel,
                 this.angle,
+                rotSpeed,
                 this.bulletRadius,
                 this.bulletMaxSpeed,
                 this.bulletMinSpeed,

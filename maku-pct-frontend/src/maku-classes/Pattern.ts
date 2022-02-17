@@ -14,6 +14,9 @@ const DEFAULT_STACK_LENGTH: number = 1;
 const DEFAULT_LIFESPAN: number = 120;
 const DEFAULT_ANGLE: number = 0;
 const DEFAULT_PATH_PAUSE: number = 0;
+const DEFAULT_BULLET_ROT_SPEED: number = 0;
+const DEFAULT_REVERSE_ROT_PER: number = Infinity;
+const DEFAULT_SMOOTH_REV: Boolean = false;
 
 interface PatternArgs {
     startDelay?: number,
@@ -27,9 +30,13 @@ interface PatternArgs {
     bulletUpperSpeed?: number,
     bulletAccel: number,
     rotationSpeed: number,
+    reverseRotPeriod?: number,
+    smoothReversing?: Boolean,
     spreadAngle?: number,
     color: p5Types.Color,
     bulletRadius?: number,
+    bulletLowerRotSpeed?: number,
+    bulletUpperRotSpeed?: number,
     bulletMaxSpeed?: number,
     bulletMinSpeed?: number,
     bulletLifeSpan?: number,
@@ -60,6 +67,10 @@ export default class Pattern {
         if (!args.initAngle) args.initAngle = DEFAULT_ANGLE;
         if (!args.bulletUpperSpeed) args.bulletUpperSpeed = args.bulletLowerSpeed;
         if (!args.pathPause) args.pathPause = DEFAULT_PATH_PAUSE;
+        if (!args.bulletLowerRotSpeed) args.bulletLowerRotSpeed = DEFAULT_BULLET_ROT_SPEED;
+        if (!args.bulletUpperRotSpeed) args.bulletUpperRotSpeed = args.bulletLowerRotSpeed;
+        if (!args.reverseRotPeriod) args.reverseRotPeriod = DEFAULT_REVERSE_ROT_PER;
+        if (!args.smoothReversing) args.smoothReversing = DEFAULT_SMOOTH_REV;
         if (!args.sourcePath) {
             args.sourcePath = new StillPath(args.initPos.copy(), Infinity);
         }
@@ -72,12 +83,16 @@ export default class Pattern {
         this.firingFrames = 0;
         this.source = new BulletSource(args.initAngle,
                                     args.rotationSpeed,
+                                    args.reverseRotPeriod,
+                                    args.smoothReversing,
                                     args.initPos,
                                     args.color,
                                     args.bulletLowerSpeed,
                                     args.bulletUpperSpeed,
                                     args.bulletAccel,
                                     args.bulletRadius,
+                                    args.bulletLowerRotSpeed,
+                                    args.bulletUpperRotSpeed,
                                     args.bulletMaxSpeed,
                                     args.bulletMinSpeed,
                                     args.bulletLifeSpan,
@@ -102,7 +117,7 @@ export default class Pattern {
     }
 
     fire() {
-        let angleDivide = this.spreadAngle / this.spokeCount;
+        let angleDivide = this.spokeCount > 1 ? this.spreadAngle / (this.spokeCount - 1) : 0;
         for (let i = 0; i < this.spokeCount; i++) {
             this.source.fire();
             this.source.rotate(angleDivide);

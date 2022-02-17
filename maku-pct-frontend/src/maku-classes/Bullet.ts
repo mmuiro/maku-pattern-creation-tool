@@ -12,6 +12,7 @@ export default class Bullet {
     speed: number;
     accel: number;
     angle: number; // in radians
+    rotationSpeed: number;
     radius: number;
     maxSpeed: number;
     minSpeed: number;
@@ -22,6 +23,7 @@ export default class Bullet {
                 initSpeed: number, 
                 initAccel: number,
                 initAngle: number,
+                rotationSpeed: number,
                 radius: number,
                 maxSpeed: number,
                 minSpeed: number,
@@ -31,6 +33,7 @@ export default class Bullet {
         this.speed = initSpeed;
         this.accel = initAccel;
         this.angle = initAngle;
+        this.rotationSpeed = rotationSpeed;
         this.radius = radius;
         this.maxSpeed = maxSpeed;
         this.minSpeed = minSpeed;
@@ -42,6 +45,7 @@ export default class Bullet {
         this.pos.x += Math.cos(this.angle) * this.speed;
         this.pos.y += Math.sin(this.angle) * this.speed;
         this.speed += this.accel;
+        this.angle += this.rotationSpeed;
         if (this.speed > this.maxSpeed) {
             this.speed = this.maxSpeed;
         } else if (this.speed < this.minSpeed) {
