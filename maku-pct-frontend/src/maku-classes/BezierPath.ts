@@ -1,13 +1,13 @@
-import Path from "./Path";
-import p5Types from "p5";
-import Vec2D from "./Vec2D";
+import Path from './Path';
+import Vec2D from './Vec2D';
+import BezierCurve from './BezierCurve';
 
 const PATH_DIST_FACTOR: number = 12;
 
 interface LookupEntry {
-    cumulativeDistance: number,
-    t: number,
-    segIndex: number
+    cumulativeDistance: number;
+    t: number;
+    segIndex: number;
 }
 
 export default class BezierPath implements Path {
@@ -16,24 +16,26 @@ export default class BezierPath implements Path {
     controlPoints: Vec2D[]; // same length as points;
     mirrorControlPoints: Vec2D[];
     segmentCount: number;
+    segments: BezierCurve[];
     lookup: LookupEntry[];
     pps: number;
-    constructor(points: Vec2D[], controlPoints: Vec2D[], period: number, p5: p5Types) {
+    constructor(points: Vec2D[], controlPoints: Vec2D[], period: number) {
         this.points = points;
         this.controlPoints = controlPoints;
         this.mirrorControlPoints = this.calcMirrorControlPoints();
         this.period = period;
         this.segmentCount = points.length - 1;
+        this.segments = this.getCurves();
         this.lookup = [];
         this.pps = 0;
-        this.calcLUT(p5);
+        this.calcLUT();
     }
-    
+
     calcMirrorControlPoints(): Vec2D[] {
         let mcPoints: Vec2D[] = [];
         mcPoints.push(this.controlPoints[0]);
         for (let i = 1; i < this.controlPoints.length - 1; i++) {
-            let diffX: number = this.points[i].x - this.controlPoints[i].x ;
+            let diffX: number = this.points[i].x - this.controlPoints[i].x;
             let diffY: number = this.points[i].y - this.controlPoints[i].y;
             let x = this.points[i].x + diffX;
             let y = this.points[i].y + diffY;
@@ -43,48 +45,72 @@ export default class BezierPath implements Path {
         return mcPoints;
     }
 
-    calcAvgApproxPPS(): number { // parts per segment
+    getCurves(): BezierCurve[] {
+        const segmentList: BezierCurve[] = [];
+        for (let i = 0; i < this.segmentCount; i++) {
+            segmentList.push(
+                new BezierCurve(
+                    this.points[i].x,
+                    this.points[i].y,
+                    this.mirrorControlPoints[i].x,
+                    this.mirrorControlPoints[i].y,
+                    this.controlPoints[i + 1].x,
+                    this.controlPoints[i + 1].y,
+                    this.points[i + 1].x,
+                    this.points[i + 1].y
+                )
+            );
+        }
+        return segmentList;
+    }
+
+    calcAvgApproxPPS(): number {
+        // parts per segment
         let avgdist = 0;
         for (let i = 0; i < this.segmentCount; i++) {
-            avgdist += this.points[i].distTo(this.points[i+1]);
+            avgdist += this.points[i].distTo(this.points[i + 1]);
         }
         avgdist /= this.segmentCount;
         return Math.ceil(avgdist * PATH_DIST_FACTOR);
     }
 
-    calcLUT(p5: p5Types) { // fills up both lookup and segmentLengths
+    calcLUT() {
+        // fills up both lookup and segmentLengths
         this.pps = this.calcAvgApproxPPS();
         let cumulativeDist = 0;
         let prevPoint = this.points[0];
         for (let segI = 0; segI < this.segmentCount; segI++) {
             for (let t = 0; t < this.pps; t++) {
                 let time = t / this.pps;
-                let x = p5.bezierPoint(this.points[segI].x, this.mirrorControlPoints[segI].x,
-                                        this.controlPoints[segI + 1].x, this.points[segI + 1].x, time);
-                let y = p5.bezierPoint(this.points[segI].y, this.mirrorControlPoints[segI].y,
-                                        this.controlPoints[segI + 1].y, this.points[segI + 1].y, time);
-                let curPoint = new Vec2D(x, y);
+                let curPoint = this.segments[segI].coordsAtT(time);
                 let partDist = prevPoint.distTo(curPoint);
                 prevPoint = curPoint;
                 cumulativeDist += partDist;
                 let entry: LookupEntry = {
                     cumulativeDistance: cumulativeDist,
                     t: time,
-                    segIndex: segI
+                    segIndex: segI,
                 };
                 this.lookup.push(entry);
             }
         }
     }
 
-    lookupToData(dist: number): [number, number] { // binary search for faster lookup times
-        let [left, right, mid] = [0, this.lookup.length - 1, Math.floor((this.lookup.length - 1) / 2)];
+    lookupToData(dist: number): [number, number] {
+        // binary search for faster lookup times
+        let [left, right, mid] = [
+            0,
+            this.lookup.length - 1,
+            Math.floor((this.lookup.length - 1) / 2),
+        ];
         while (mid !== right) {
             let leftDist = this.lookup[mid].cumulativeDistance;
             let rightDist = this.lookup[mid + 1].cumulativeDistance;
             if (leftDist <= dist && dist < rightDist) {
                 let startTime = this.lookup[mid].t;
-                let time = startTime + ((dist - leftDist) / ((dist - rightDist) * this.pps));
+                let time =
+                    startTime +
+                    (dist - leftDist) / ((dist - rightDist) * this.pps);
                 return [time, this.lookup[mid].segIndex];
             } else if (dist > leftDist) {
                 left = mid + 1;
@@ -94,41 +120,103 @@ export default class BezierPath implements Path {
             mid = Math.floor((left + right) / 2);
         }
         return [NaN, NaN];
-        
     }
 
-    getCoordsAt(t: number, p5: p5Types): Vec2D { // change this to use approximate arc length parameterization
+    getCoordsAt(t: number): Vec2D {
         t %= this.period;
-        let dist = (t / this.period) * this.lookup[this.lookup.length - 1].cumulativeDistance;
+        let dist =
+            (t / this.period) *
+            this.lookup[this.lookup.length - 1].cumulativeDistance;
         let [time, segI] = this.lookupToData(dist);
-        let x = p5.bezierPoint(this.points[segI].x, this.mirrorControlPoints[segI].x,
-            this.controlPoints[segI + 1].x, this.points[segI + 1].x, time);
-        let y = p5.bezierPoint(this.points[segI].y, this.mirrorControlPoints[segI].y,
-            this.controlPoints[segI + 1].y, this.points[segI + 1].y, time);
-        return new Vec2D(x, y);
+        return this.segments[segI].coordsAtT(time);
     }
 
-    draw(p5: p5Types) {
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        ctx.moveTo(this.points[0].x, this.points[0].y);
+        for (let segI = 0; segI < this.segmentCount; segI++) {
+            ctx.bezierCurveTo(
+                this.mirrorControlPoints[segI].x,
+                this.mirrorControlPoints[segI].y,
+                this.controlPoints[segI + 1].x,
+                this.controlPoints[segI + 1].y,
+                this.points[segI + 1].x,
+                this.points[segI + 1].y
+            );
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgb(22, 94, 201)';
+        for (let i = 0; i <= this.segmentCount; i++) {
+            ctx.beginPath();
+            ctx.arc(this.points[i].x, this.points[i].y, 5, 0, 2 * Math.PI);
+            ctx.arc(
+                this.controlPoints[i].x,
+                this.controlPoints[i].y,
+                5,
+                0,
+                2 * Math.PI
+            );
+            ctx.arc(
+                this.mirrorControlPoints[i].x,
+                this.mirrorControlPoints[i].y,
+                5,
+                0,
+                2 * Math.PI
+            );
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(this.controlPoints[i].x, this.controlPoints[i].y);
+            ctx.lineTo(this.points[i].x, this.points[i].y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(
+                this.mirrorControlPoints[i].x,
+                this.mirrorControlPoints[i].y
+            );
+            ctx.lineTo(this.points[i].x, this.points[i].y);
+            ctx.stroke();
+        }
+        /*
         p5.push();
         p5.noFill();
         for (let segI = 0; segI < this.segmentCount; segI++) {
             p5.stroke(255, 255, 255);
-            p5.bezier(this.points[segI].x, this.points[segI].y,
-                    this.mirrorControlPoints[segI].x, this.mirrorControlPoints[segI].y,
-                    this.controlPoints[segI + 1].x, this.controlPoints[segI + 1].y,
-                    this.points[segI + 1].x, this.points[segI + 1].y);
+            p5.bezier(
+                this.points[segI].x,
+                this.points[segI].y,
+                this.mirrorControlPoints[segI].x,
+                this.mirrorControlPoints[segI].y,
+                this.controlPoints[segI + 1].x,
+                this.controlPoints[segI + 1].y,
+                this.points[segI + 1].x,
+                this.points[segI + 1].y
+            );
         }
         for (let i = 0; i <= this.segmentCount; i++) {
             p5.fill(22, 94, 201);
             p5.circle(this.points[i].x, this.points[i].y, 5);
             p5.circle(this.controlPoints[i].x, this.controlPoints[i].y, 10);
-            p5.circle(this.mirrorControlPoints[i].x, this.mirrorControlPoints[i].y, 10);
+            p5.circle(
+                this.mirrorControlPoints[i].x,
+                this.mirrorControlPoints[i].y,
+                10
+            );
             p5.noFill();
-            p5.line(this.controlPoints[i].x, this.controlPoints[i].y,
-                    this.points[i].x, this.points[i].y);
-            p5.line(this.mirrorControlPoints[i].x, this.mirrorControlPoints[i].y,
-                this.points[i].x, this.points[i].y);
-        }
+            p5.line(
+                this.controlPoints[i].x,
+                this.controlPoints[i].y,
+                this.points[i].x,
+                this.points[i].y
+            );
+            p5.line(
+                this.mirrorControlPoints[i].x,
+                this.mirrorControlPoints[i].y,
+                this.points[i].x,
+                this.points[i].y
+            );
+        }*/
     }
-
 }

@@ -1,16 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import { ChakraProvider } from "@chakra-ui/react";
-import Canvas from "./Canvas";
+import { ChakraProvider } from '@chakra-ui/react';
+import Canvas from './Canvas';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <ChakraProvider>
-      <Canvas />
-    </ChakraProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+    <React.StrictMode>
+        <ChakraProvider>
+            <Canvas width={window.innerWidth} height={window.innerHeight} />
+        </ChakraProvider>
+    </React.StrictMode>,
+    document.getElementById('root')
 );
 
 // If you want to start measuring performance in your app, pass a function

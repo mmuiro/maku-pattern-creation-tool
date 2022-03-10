@@ -1,6 +1,6 @@
-import Path from "./Path";
-import p5Types from "p5";
-import Vec2D from "./Vec2D";
+import Path from './Path';
+import p5Types from 'p5';
+import Vec2D from './Vec2D';
 
 export default class StillPath implements Path {
     period: number;
@@ -10,11 +10,9 @@ export default class StillPath implements Path {
         this.position = position;
     }
 
-    getCoordsAt(t: number, p5: p5Types): Vec2D {
+    getCoordsAt(t: number): Vec2D {
         return new Vec2D(this.position.x, this.position.y);
     }
-    
-    draw(p5: p5Types): void {
-        
-    }
+
+    draw(ctx: CanvasRenderingContext2D): void {}
 }

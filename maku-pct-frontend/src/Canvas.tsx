@@ -1,77 +1,141 @@
-import React from "react";
-import Sketch from "react-p5";
-import p5Types from "p5";
-import Pattern from "./maku-classes/Pattern";
-import EllipsePath from "./maku-classes/EllipsePath";
-import BezierPath from "./maku-classes/BezierPath";
-import StillPath from "./maku-classes/StillPath";
-import LinePath from "./maku-classes/LinePath";
-import Vec2D from "./maku-classes/Vec2D";
-
+import React, {
+    ReactElement,
+    RefObject,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
+import Color from './maku-classes/Color';
+import Pattern from './maku-classes/Pattern';
+import EllipsePath from './maku-classes/EllipsePath';
+import BezierPath from './maku-classes/BezierPath';
+import StillPath from './maku-classes/StillPath';
+import LinePath from './maku-classes/LinePath';
+import Vec2D from './maku-classes/Vec2D';
 
 interface CanvasProps {
-    // figure out props
+    width: number;
+    height: number;
 }
 
-const Canvas: React.FC<any> = () => {
-    // we don't need to use states when dealing with anything the sketch handles itself.
-    let patterns: Pattern[];
-    const setup = (p5: p5Types, canvasParentRef: Element) => {
-        p5.disableFriendlyErrors = true;
-        p5.createCanvas(800, 800).parent(canvasParentRef);
-        p5.angleMode(p5.RADIANS);
-        patterns = [];
-        patterns.push(new Pattern({
-            fireInterval: 2,
-            spokeCount: 5,
-            initPos: new Vec2D(p5.width / 2, p5.height / 2),
-            bulletLowerSpeed: 4,
-            bulletUpperSpeed: 8,
-            bulletAccel: 0.05,
-            bulletRadius: 8,
-            bulletMaxSpeed: 12,
-            initAngle: 0,
-            rotationSpeed: 0.05,
-            reverseRotPeriod: 120,
-            smoothReversing: true,
-            bulletLifeSpan: 600,
-            color: p5.color(0, 255, 0),
-            stackLength: 1
-        }));
+const Canvas: React.FC<any> = (props: CanvasProps) => {
+    const [patterns, setPatterns] = useState<Pattern[]>([]);
+
+    const canvasRef: RefObject<HTMLCanvasElement> =
+        useRef<HTMLCanvasElement>(null);
+    let animationRequestID: number;
+    let lastFrameCheck: number;
+
+    const getFrameRate = () => {
+        let ret = performance.now() - lastFrameCheck;
+        lastFrameCheck = performance.now();
+        return 1000 / ret;
+    };
+
+    const setup = () => {
+        patterns.push(
+            new Pattern({
+                fireInterval: 1,
+                spokeCount: 6,
+                initPos: new Vec2D(props.width / 2, props.height / 2),
+                bulletLowerSpeed: 6,
+                bulletUpperSpeed: 8,
+                bulletAccel: 0.05,
+                bulletRadius: 5,
+                bulletMaxSpeed: 8,
+                initAngle: 0,
+                rotationSpeed: 0.05,
+                bulletLowerRotSpeed: 0.03,
+                reverseRotPeriod: 120,
+                smoothReversing: true,
+                bulletLifeSpan: 120,
+                color: new Color(0, 255, 0),
+                stackLength: 1,
+            })
+        );
+        patterns.push(
+            new Pattern({
+                fireInterval: 1,
+                spokeCount: 6,
+                initPos: new Vec2D(props.width / 2, props.height / 2),
+                bulletLowerSpeed: 6,
+                bulletUpperSpeed: 8,
+                bulletAccel: 0.05,
+                bulletRadius: 5,
+                bulletMaxSpeed: 8,
+                initAngle: 0,
+                rotationSpeed: -0.05,
+                bulletLowerRotSpeed: 0.03,
+                reverseRotPeriod: 120,
+                smoothReversing: true,
+                bulletLifeSpan: 120,
+                color: new Color(0, 100, 155),
+                stackLength: 1,
+            })
+        );
+
         let points = [];
-        for (let i = 0; i < 10; i++) {
-            points.push(new Vec2D(Math.random() * p5.width, Math.random() * p5.height));
+        let controlPoints = [];
+        for (let i = 0; i < 4; i++) {
+            points.push(
+                new Vec2D(
+                    Math.random() * props.width,
+                    Math.random() * props.height
+                )
+            );
+            controlPoints.push(
+                new Vec2D(
+                    Math.random() * props.width,
+                    Math.random() * props.height
+                )
+            );
         }
-        patterns.push(new Pattern({
-            fireInterval: 1,
-            spokeCount: 5,
-            initAngle: 0,
-            initPos: new Vec2D(p5.width / 2, p5.height / 2),
-            bulletLowerSpeed: 6,
-            bulletUpperSpeed: 8,
-            bulletAccel: -0.075,
-            rotationSpeed: 0.1,
-            color: p5.color(Math.ceil(Math.random() * 255), 
-                            Math.ceil(Math.random() * 255), 
-                            Math.ceil(Math.random() * 255)),
-            stackLength: 1,
-            sourcePath: new LinePath(points, 180)
-        }));
-        
-    }
+        patterns.push(
+            new Pattern({
+                fireInterval: 1,
+                spokeCount: 5,
+                initAngle: 0,
+                initPos: new Vec2D(props.width / 2, props.height / 2),
+                bulletLowerSpeed: 6,
+                bulletUpperSpeed: 8,
+                bulletAccel: -0.075,
+                rotationSpeed: 0.1,
+                color: new Color(
+                    Math.ceil(Math.random() * 255),
+                    Math.ceil(Math.random() * 255),
+                    Math.ceil(Math.random() * 255)
+                ),
+                stackLength: 1,
+                sourcePath: new BezierPath(points, controlPoints, 180),
+            })
+        );
+    };
 
-    const draw = (p5: p5Types) => {
-        p5.background(p5.color(0, 0, 0));
-        patterns.forEach((pattern: Pattern) => {
-            pattern.draw(p5);
-            pattern.update(p5);
-        });
-        p5.frameRate(60);
-        // console.log(patterns[0].source.bullets.length);
-    }
+    const draw = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let pattern of patterns) {
+            pattern.draw(ctx);
+            pattern.update(canvas);
+        }
+    };
 
+    const update = () => {
+        const canvas: HTMLCanvasElement = canvasRef.current!;
+        const ctx = canvas!.getContext('2d')!;
+        console.clear();
+        console.log(getFrameRate());
+        draw(ctx, canvas);
+        animationRequestID = requestAnimationFrame(update);
+    };
 
-    return <Sketch setup={setup} draw={draw} />;
-}
+    useEffect(() => {
+        setup();
+        animationRequestID = requestAnimationFrame(update);
+        return () => cancelAnimationFrame(animationRequestID);
+    }, []); // alter it to change each time you update the update function (so whenever you modify patterns).
+
+    return <canvas ref={canvasRef} width={props.width} height={props.height} />;
+};
 
 export default Canvas;
