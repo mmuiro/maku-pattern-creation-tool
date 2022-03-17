@@ -179,44 +179,5 @@ export default class BezierPath implements Path {
             ctx.lineTo(this.points[i].x, this.points[i].y);
             ctx.stroke();
         }
-        /*
-        p5.push();
-        p5.noFill();
-        for (let segI = 0; segI < this.segmentCount; segI++) {
-            p5.stroke(255, 255, 255);
-            p5.bezier(
-                this.points[segI].x,
-                this.points[segI].y,
-                this.mirrorControlPoints[segI].x,
-                this.mirrorControlPoints[segI].y,
-                this.controlPoints[segI + 1].x,
-                this.controlPoints[segI + 1].y,
-                this.points[segI + 1].x,
-                this.points[segI + 1].y
-            );
-        }
-        for (let i = 0; i <= this.segmentCount; i++) {
-            p5.fill(22, 94, 201);
-            p5.circle(this.points[i].x, this.points[i].y, 5);
-            p5.circle(this.controlPoints[i].x, this.controlPoints[i].y, 10);
-            p5.circle(
-                this.mirrorControlPoints[i].x,
-                this.mirrorControlPoints[i].y,
-                10
-            );
-            p5.noFill();
-            p5.line(
-                this.controlPoints[i].x,
-                this.controlPoints[i].y,
-                this.points[i].x,
-                this.points[i].y
-            );
-            p5.line(
-                this.mirrorControlPoints[i].x,
-                this.mirrorControlPoints[i].y,
-                this.points[i].x,
-                this.points[i].y
-            );
-        }*/
     }
 }

@@ -6,7 +6,7 @@ import React, {
     useState,
 } from 'react';
 import Color from './maku-classes/Color';
-import Pattern from './maku-classes/Pattern';
+import { Pattern } from './maku-classes/Pattern';
 import EllipsePath from './maku-classes/EllipsePath';
 import BezierPath from './maku-classes/BezierPath';
 import StillPath from './maku-classes/StillPath';
@@ -33,19 +33,22 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
     };
 
     const setup = () => {
+        //canvasRef.current!.width = canvasRef.current!.offsetWidth;
+        //canvasRef.current!.height = canvasRef.current!.offsetHeight;
         patterns.push(
             new Pattern({
                 fireInterval: 1,
                 spokeCount: 6,
-                initPos: new Vec2D(props.width / 2, props.height / 2),
+                initX: props.width / 2,
+                initY: props.height / 2,
                 bulletLowerSpeed: 6,
                 bulletUpperSpeed: 8,
                 bulletAccel: 0.05,
-                bulletRadius: 5,
+                bulletRadius: 6,
                 bulletMaxSpeed: 8,
                 initAngle: 0,
-                rotationSpeed: 0.05,
-                bulletLowerRotSpeed: 0.03,
+                rotationSpeed: 3,
+                bulletLowerRotSpeed: 1.8,
                 reverseRotPeriod: 120,
                 smoothReversing: true,
                 bulletLifeSpan: 120,
@@ -57,15 +60,16 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
             new Pattern({
                 fireInterval: 1,
                 spokeCount: 6,
-                initPos: new Vec2D(props.width / 2, props.height / 2),
+                initX: props.width / 2,
+                initY: props.height / 2,
                 bulletLowerSpeed: 6,
                 bulletUpperSpeed: 8,
                 bulletAccel: 0.05,
-                bulletRadius: 5,
+                bulletRadius: 6,
                 bulletMaxSpeed: 8,
                 initAngle: 0,
-                rotationSpeed: -0.05,
-                bulletLowerRotSpeed: 0.03,
+                rotationSpeed: -3,
+                bulletLowerRotSpeed: -1.8,
                 reverseRotPeriod: 120,
                 smoothReversing: true,
                 bulletLifeSpan: 120,
@@ -73,7 +77,28 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
                 stackLength: 1,
             })
         );
-
+        patterns.push(
+            new Pattern({
+                fireInterval: 120,
+                spokeCount: 120,
+                initX: props.width / 2,
+                initY: props.height / 2,
+                bulletLowerSpeed: 6,
+                bulletUpperSpeed: 8,
+                bulletAccel: 0.05,
+                bulletRadius: 6,
+                bulletMaxSpeed: 8,
+                initAngle: 0,
+                rotationSpeed: -3,
+                bulletLowerRotSpeed: 1.8,
+                reverseRotPeriod: 120,
+                smoothReversing: true,
+                bulletLifeSpan: 120,
+                color: new Color(200, 0, 200),
+                stackLength: 1,
+            })
+        );
+        /*
         let points = [];
         let controlPoints = [];
         for (let i = 0; i < 4; i++) {
@@ -109,6 +134,7 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
                 sourcePath: new BezierPath(points, controlPoints, 180),
             })
         );
+        */
     };
 
     const draw = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -123,8 +149,8 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
     const update = () => {
         const canvas: HTMLCanvasElement = canvasRef.current!;
         const ctx = canvas!.getContext('2d')!;
-        console.clear();
-        console.log(getFrameRate());
+        // console.clear();
+        // console.log(getFrameRate());
         draw(ctx, canvas);
         animationRequestID = requestAnimationFrame(update);
     };
@@ -135,7 +161,18 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         return () => cancelAnimationFrame(animationRequestID);
     }, []); // alter it to change each time you update the update function (so whenever you modify patterns).
 
-    return <canvas ref={canvasRef} width={props.width} height={props.height} />;
+    return (
+        <canvas
+            id="main"
+            ref={canvasRef}
+            width={props.width}
+            height={props.height}
+            style={{
+                width: '100%',
+                height: '100%',
+            }}
+        />
+    );
 };
 
 export default Canvas;

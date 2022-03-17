@@ -1,5 +1,4 @@
 import Path from './Path';
-import p5Types from 'p5';
 import Vec2D from './Vec2D';
 
 export default class StillPath implements Path {

@@ -11,7 +11,9 @@ export default class Vec2D {
     }
 
     distTo(other: Vec2D): number {
-        return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+        return Math.sqrt(
+            Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2)
+        );
     }
 
     mag(): number {
@@ -22,11 +24,11 @@ export default class Vec2D {
         return new Vec2D(this.x + other.x, this.y + other.y);
     }
 
-    dot(other:Vec2D): number {
+    dot(other: Vec2D): number {
         return this.x * other.x + this.y * other.y;
     }
 
     mul(scalar: number): Vec2D {
         return new Vec2D(scalar * this.x, scalar * this.y);
     }
- }
+}

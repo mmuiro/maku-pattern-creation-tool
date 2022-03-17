@@ -1,6 +1,5 @@
 import Color from './Color';
 import Vec2D from './Vec2D';
-import getDrawingContext from '../p5-utils/getDrawingContext';
 
 const DEFAULT_RADIUS: number = 5;
 const DEFAULT_MAX_SPEED: number = 5;
@@ -73,20 +72,12 @@ export default class Bullet {
         let alpha = Math.sqrt(1 - this.framesPassed / this.lifespan);
         this.color.a = alpha;
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.lineWidth = 1;
         ctx.strokeStyle = this.color.toString();
         ctx.beginPath();
         ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
-        /*p5.push();
-        p5.noStroke();
-        let alpha = Math.sqrt(1 - this.framesPassed / this.lifespan) * 255;
-        this.color.setAlpha(alpha);
-        p5.fill(p5.color(255, 255, 255, alpha));
-        p5.stroke(this.color);
-        //const drawingContext: CanvasRenderingContext2D = getDrawingContext(p5)!;
-        p5.circle(this.pos.x, this.pos.y, this.radius);
-        p5.pop();*/
     }
 }
