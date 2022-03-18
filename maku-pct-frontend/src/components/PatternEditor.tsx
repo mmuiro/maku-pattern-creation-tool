@@ -1,11 +1,10 @@
-import { DEFAULTS, Pattern, PatternArgs } from '../maku-classes/Pattern';
+import { DEFAULTS, PatternArgs } from '../maku-classes/Pattern';
 import React, { useCallback, useState } from 'react';
 import Path from '../maku-classes/Path';
 import {
     GridItem,
     VStack,
     Text,
-    Box,
     NumberInput,
     NumberInputField,
     SimpleGrid,
@@ -13,7 +12,7 @@ import {
     useBreakpointValue,
     Checkbox,
     Flex,
-    HStack,
+    Button,
 } from '@chakra-ui/react';
 
 const PARAM_TO_LABEL: { [key: string]: string } = {
@@ -36,6 +35,8 @@ const PARAM_TO_LABEL: { [key: string]: string } = {
     bulletUpperRotSpeed: 'Upper Rotation Speed',
     bulletMaxAngleChange: 'Max Angle Change',
     smoothReversing: 'Smooth Reversing',
+    stackLength: 'Burst Length',
+    spokeCount: 'Spoke Count',
 }; // map from parameter name to label
 const TIMING_PARAMS = ['startDelay', 'fireInterval'];
 const SOURCE_INIT_PARAMS = ['initAngle', 'initX', 'initY'];
@@ -67,13 +68,34 @@ interface BooleanMap {
     [key: string]: Boolean;
 }
 
+interface PatternEditorArgs {
+    patternSetter: Function;
+}
+
 // need toggles for setting whether to have reverse rotation, whether to have a upper speed/rotation speed (by default should equal to lower)
 
-const PatternEditor: React.FC<any> = (patternSetter: Function) => {
+const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
     const [patternParams, setPatternParams] = useState<PatternArgs>({
         ...DEFAULTS,
     });
-    const [checkedParams, setCheckedParams] = useState<BooleanMap>({});
+
+    const [checkedParams, setCheckedParams] = useState<BooleanMap>({
+        'Rotation Reversing': false,
+    });
+
+    const [preFreezeParams, setPreFreezeParams] = useState<PatternArgs>(
+        (() => {
+            let pre: PatternArgs = { ...DEFAULTS };
+            for (let prop in pre) {
+                if (
+                    typeof pre[prop] === 'number' &&
+                    !isFinite(pre[prop] as number)
+                )
+                    pre[prop] = 0;
+            }
+            return pre;
+        })()
+    );
 
     const colResponsive = (i: number, w: number) =>
         useBreakpointValue({
@@ -95,6 +117,8 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
             const updateParam = (val: number) => {
                 patternParams[param] = val;
                 setPatternParams({ ...patternParams });
+                preFreezeParams[param] = val;
+                setPreFreezeParams({ ...preFreezeParams });
             };
             let isInvalid = toggleable && !checkedParams[param];
             let disabledByExternal =
@@ -115,7 +139,7 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                         justifyContent="space-between"
                     >
                         <FormLabel fontSize="sm">
-                            {PARAM_TO_LABEL[param]}
+                            {PARAM_TO_LABEL[param] + (angle ? ' °' : '')}
                         </FormLabel>
                         {toggleable && (
                             <Checkbox
@@ -130,6 +154,12 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                                     if (!e.target.checked) {
                                         patternParams[param] = DEFAULTS[param];
                                         setPatternParams({ ...patternParams });
+                                    } else {
+                                        patternParams[param] =
+                                            preFreezeParams[param];
+                                        setPatternParams({
+                                            ...patternParams,
+                                        });
                                     }
                                 }}
                             ></Checkbox>
@@ -139,21 +169,13 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                         size="sm"
                         onChange={(valStr: string, valNum: number) => {
                             updateParam(valNum);
-                            console.log(`${param} = ${valNum}`);
                         }}
                         min={min}
                         max={max}
                         colorScheme="blue"
                         variant="filled"
                         isDisabled={isInvalid || Boolean(disabledByExternal!)} // TypeScript moment ????
-                        {...(!isNaN(Number(patternParams[param])) && {
-                            value:
-                                String(
-                                    !isInvalid
-                                        ? Number(patternParams[param])
-                                        : DEFAULTS[param]
-                                ) + (angle ? '°' : ''),
-                        })}
+                        defaultValue={String(patternParams[param] as number)}
                     >
                         <NumberInputField />
                     </NumberInput>
@@ -213,6 +235,17 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
         patternParams.sourcePath = path;
         setPatternParams({ ...patternParams });
     };
+
+    const submitChanges = useCallback(() => {
+        props.patternSetter({ ...patternParams });
+    }, [patternParams]);
+
+    let submittable: Boolean = Object.entries(patternParams).every(
+        (pair) =>
+            typeof pair[1] !== 'number' ||
+            (typeof pair[1] === 'number' && !isNaN(pair[1] as number))
+    );
+
     return (
         <VStack spacing={4} justifyContent="flex-start">
             {/* Timing Parameters */}
@@ -263,7 +296,7 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                         createNumericInputElement(
                             param,
                             0,
-                            Infinity,
+                            360,
                             colResponsive(i + 1, 2),
                             i,
                             true
@@ -312,10 +345,11 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                     {BULLET_ROT_PARAMS.map((param, i) =>
                         createNumericInputElement(
                             param,
-                            0,
-                            Infinity,
+                            -180,
+                            180,
                             colResponsive(i + 1, 3),
-                            i
+                            i,
+                            true
                         )
                     )}
                     {BULLET_LIMIT_PARAMS.map((param, i) =>
@@ -331,6 +365,33 @@ const PatternEditor: React.FC<any> = (patternSetter: Function) => {
                     )}
                 </SimpleGrid>
             </VStack>
+
+            {/* Burst/Spread Parameters */}
+            <VStack spacing={1} alignItems="flex-start" w="full">
+                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                    Bursts/Spread
+                </Text>
+                <SimpleGrid columnGap={6} columns={2} w="full">
+                    {COUNT_PARAMS.map((param, i) =>
+                        createNumericInputElement(
+                            param,
+                            0,
+                            Infinity,
+                            colResponsive(i + 1, 2),
+                            i
+                        )
+                    )}
+                </SimpleGrid>
+            </VStack>
+
+            <Button
+                size="sm"
+                colorScheme="blue"
+                onClick={(e) => submitChanges()}
+                isDisabled={!submittable}
+            >
+                Apply
+            </Button>
         </VStack>
     );
 };

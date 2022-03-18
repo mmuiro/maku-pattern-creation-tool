@@ -2,20 +2,24 @@ import React, { useCallback, useState } from 'react';
 import { Box, Divider, Flex, useBreakpointValue } from '@chakra-ui/react';
 import Canvas from '../Canvas';
 import EditorMenu from '../components/EditorMenu';
-import { Pattern } from '../maku-classes/Pattern';
+import { DEFAULTS, PatternArgs } from '../maku-classes/Pattern';
 import PatternEditor from '../components/PatternEditor';
 
 const EditorPage: React.FC<any> = () => {
-    const [patterns, setPatterns] = useState<Pattern[]>([]);
+    const [patternParamsList, setPatternParamsList] = useState<PatternArgs[]>([
+        { ...DEFAULTS },
+    ]);
 
-    const designatedPatternSetter = useCallback(
-        (index: number) => {
-            return (pattern: Pattern) => {
-                patterns[index] = pattern;
-                setPatterns(() => patterns);
-            };
-        },
-        [patterns]
+    const designatedPatternSetter: Function = useCallback(
+        (index: number) =>
+            useCallback(
+                (patternParams: PatternArgs) => {
+                    patternParamsList[index] = patternParams;
+                    setPatternParamsList((test) => [...test]);
+                },
+                [patternParamsList]
+            ),
+        [patternParamsList]
     );
 
     const canvasAR: number = useBreakpointValue({
@@ -35,13 +39,17 @@ const EditorPage: React.FC<any> = () => {
                 borderRadius="lg"
                 overflow="hidden"
             >
-                <Canvas width={canvasAR * baseSize} height={baseSize}></Canvas>
+                <Canvas
+                    width={canvasAR * baseSize}
+                    height={baseSize}
+                    patterns={patternParamsList}
+                ></Canvas>
             </Box>
             <Box
                 flexGrow={1}
                 flexBasis={0}
                 my={4}
-                mx={2}
+                mx={1}
                 overflowY="scroll"
                 sx={{
                     '&::-webkit-scrollbar': {
@@ -51,10 +59,13 @@ const EditorPage: React.FC<any> = () => {
                         backgroundColor: '#EDF2F7',
                         borderRadius: '4px',
                     },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                        backgroundColor: '#E2E8F0',
+                    },
                 }}
             >
                 <EditorMenu>
-                    <PatternEditor patternSetter={() => {}} />
+                    <PatternEditor patternSetter={designatedPatternSetter(0)} />
                 </EditorMenu>
             </Box>
         </Flex>

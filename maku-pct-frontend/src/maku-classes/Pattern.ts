@@ -57,7 +57,7 @@ export const DEFAULTS: PatternArgs = {
     bulletLowerRotSpeed: 0,
     bulletUpperRotSpeed: 0,
     bulletMaxAngleChange: Infinity,
-    bulletLifeSpan: 180,
+    bulletLifeSpan: Infinity,
     pathPause: 0,
 };
 
@@ -125,7 +125,10 @@ export class Pattern {
     update(canvas: HTMLCanvasElement) {
         if (this.passedFrames >= this.startDelay) {
             this.source.update(canvas);
-            if (!this.source.paused) {
+            if (
+                !this.source.paused &&
+                this.passedFrames - this.startDelay < this.duration
+            ) {
                 if (this.firingFrames === 0) this.fire();
                 this.firingFrames = (this.firingFrames + 1) % this.fireInterval;
             }
@@ -134,8 +137,7 @@ export class Pattern {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.passedFrames - this.startDelay < this.duration)
-            this.source.draw(ctx);
+        this.source.draw(ctx);
     }
 
     fire() {
