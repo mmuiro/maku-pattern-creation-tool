@@ -34,16 +34,22 @@ export default class LinePath implements Path {
                 cumulPrevSegDist = cumulSegLengths[segI];
                 segI++;
             }
-            this.lookup.push(
-                this.points[segI].add(
-                    this.points[segI + 1]
-                        .add(this.points[segI].mul(-1))
-                        .mul(
-                            (curDist - cumulPrevSegDist) /
-                                this.points[segI].distTo(this.points[segI + 1])
-                        )
-                )
-            );
+            if (this.points[segI].distTo(this.points[segI + 1]) === 0) {
+                this.lookup.push(this.points[segI]);
+            } else {
+                this.lookup.push(
+                    this.points[segI].add(
+                        this.points[segI + 1]
+                            .add(this.points[segI].mul(-1))
+                            .mul(
+                                (curDist - cumulPrevSegDist) /
+                                    this.points[segI].distTo(
+                                        this.points[segI + 1]
+                                    )
+                            )
+                    )
+                );
+            }
         }
     }
 
@@ -51,15 +57,5 @@ export default class LinePath implements Path {
         return this.lookup[t % this.period];
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {
-        /*
-        p5.push();
-        p5.noFill();
-        p5.stroke(255,255,255);
-        for (let i = 0; i < this.points.length - 1; i++) {
-            p5.line(this.points[i].x, this.points[i].y, this.points[i+1].x, this.points[i+1].y);
-        }
-        p5.pop();
-        */
-    }
+    draw(ctx: CanvasRenderingContext2D): void {}
 }

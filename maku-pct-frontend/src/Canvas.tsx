@@ -6,7 +6,8 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import { Pattern, PatternArgs } from './maku-classes/Pattern';
+import { pathType, Pattern, PatternArgs } from './maku-classes/Pattern';
+import Vec2D from './maku-classes/Vec2D';
 
 interface CanvasProps {
     width: number;
@@ -43,24 +44,64 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
     const update = () => {
         const canvas: HTMLCanvasElement = canvasRef.current!;
         const ctx = canvas!.getContext('2d')!;
-        console.log(getFrameRate());
+        // console.log(getFrameRate());
         draw(ctx, canvas);
         animationRequestID = requestAnimationFrame(update);
     };
 
-    /*useEffect(() => {
+    const transformPos = (x: number, y: number): number[] => {
+        return [x + props.width / 2, -y + props.height / 2];
+    };
+
+    const transformPosVec = (vec: Vec2D): Vec2D => {
+        return new Vec2D(vec.x + props.width / 2, -vec.y + props.height / 2);
+    };
+
+    useEffect(() => {
         console.log(props.patterns);
         setPatterns(() =>
             props.patterns.map((params) => {
                 let updatedParams: PatternArgs = {
                     ...params,
-                    initX: params.initX + props.width / 2,
-                    initY: params.initY + props.height / 2,
                 };
+                [updatedParams.initX, updatedParams.initY] = transformPos(
+                    updatedParams.initX,
+                    updatedParams.initY
+                );
+                switch (updatedParams.pathType) {
+                    case pathType.Ellipse:
+                        updatedParams.EPParams = { ...params.EPParams! };
+                        [
+                            updatedParams.EPParams!.centerX,
+                            updatedParams.EPParams!.centerY,
+                        ] = transformPos(
+                            updatedParams.EPParams!.centerX,
+                            updatedParams.EPParams!.centerY
+                        );
+                        break;
+                    case pathType.Line:
+                        updatedParams.LPParams = { ...params.LPParams! };
+                        updatedParams.LPParams.points =
+                            updatedParams.LPParams.points.map((point) =>
+                                transformPosVec(point)
+                            );
+                        break;
+                    case pathType.Bezier:
+                        updatedParams.BPParams = { ...params.BPParams! };
+                        updatedParams.BPParams.points =
+                            updatedParams.BPParams.points.map((point) =>
+                                transformPosVec(point)
+                            );
+                        updatedParams.BPParams.controlPoints =
+                            updatedParams.BPParams.controlPoints.map((point) =>
+                                transformPosVec(point)
+                            );
+                        break;
+                }
                 return new Pattern(updatedParams);
             })
         );
-    }, [props.patterns, props.width, props.height]);*/
+    }, [props.patterns, props.width, props.height]);
 
     useEffect(() => {
         animationRequestID = requestAnimationFrame(update);

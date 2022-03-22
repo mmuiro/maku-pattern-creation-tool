@@ -128,7 +128,7 @@ export default class BulletSource {
         this.bullets.forEach((bullet: Bullet) => {
             bullet.draw(ctx);
         });
-        // this.path.draw(ctx);
+        this.path.draw(ctx);
     }
 
     fire() {

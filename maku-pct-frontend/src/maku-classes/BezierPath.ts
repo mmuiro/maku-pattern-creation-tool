@@ -2,7 +2,7 @@ import Path from './Path';
 import Vec2D from './Vec2D';
 import BezierCurve from './BezierCurve';
 
-const PATH_DIST_FACTOR: number = 12;
+const PATH_DIST_FACTOR: number = 20;
 
 interface LookupEntry {
     cumulativeDistance: number;
@@ -71,7 +71,7 @@ export default class BezierPath implements Path {
             avgdist += this.points[i].distTo(this.points[i + 1]);
         }
         avgdist /= this.segmentCount;
-        return Math.ceil(avgdist * PATH_DIST_FACTOR);
+        return Math.max(1, Math.ceil(avgdist * PATH_DIST_FACTOR));
     }
 
     calcLUT() {
@@ -119,7 +119,7 @@ export default class BezierPath implements Path {
             }
             mid = Math.floor((left + right) / 2);
         }
-        return [NaN, NaN];
+        return [0, 0];
     }
 
     getCoordsAt(t: number): Vec2D {

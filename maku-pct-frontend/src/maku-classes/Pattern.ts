@@ -1,8 +1,40 @@
+import BezierPath from './BezierPath';
 import BulletSource from './BulletSource';
 import Color from './Color';
+import EllipsePath from './EllipsePath';
+import LinePath from './LinePath';
 import Path from './Path';
 import StillPath from './StillPath';
 import Vec2D from './Vec2D';
+
+export enum pathType {
+    None = 'None',
+    Ellipse = 'Ellipse',
+    Line = 'Line',
+    Bezier = 'Bezier',
+}
+
+export interface PathParams {
+    pause: number;
+    period: number;
+}
+
+export interface EPParams extends PathParams {
+    xAxis: number;
+    yAxis: number;
+    centerX: number;
+    centerY: number;
+    direction: number;
+}
+
+export interface LPParams extends PathParams {
+    points: Vec2D[];
+}
+
+export interface BPParams extends PathParams {
+    points: Vec2D[];
+    controlPoints: Vec2D[];
+}
 
 export interface PatternArgs {
     startDelay: number;
@@ -28,9 +60,21 @@ export interface PatternArgs {
     bulletMaxSpeed: number;
     bulletMinSpeed: number;
     bulletLifeSpan: number;
+    pathType: pathType;
+    EPParams?: EPParams;
+    LPParams?: LPParams;
+    BPParams?: BPParams;
     sourcePath?: Path;
-    pathPause: number;
-    [key: string]: number | Color | Path | Boolean | Vec2D | undefined;
+    pathPause?: number;
+    [key: string]:
+        | number
+        | Color
+        | Path
+        | Boolean
+        | Vec2D
+        | pathType
+        | PathParams
+        | undefined;
 }
 
 export const DEFAULTS: PatternArgs = {
@@ -58,7 +102,7 @@ export const DEFAULTS: PatternArgs = {
     bulletUpperRotSpeed: 0,
     bulletMaxAngleChange: Infinity,
     bulletLifeSpan: Infinity,
-    pathPause: 0,
+    pathType: pathType.None,
 };
 
 const ANGLE_PARAMS = [
@@ -83,11 +127,42 @@ export class Pattern {
 
     constructor(args: Partial<PatternArgs>) {
         let updatedArgs: PatternArgs = { ...DEFAULTS, ...args };
-        if (!updatedArgs.sourcePath) {
-            updatedArgs.sourcePath = new StillPath(
-                new Vec2D(updatedArgs.initX, updatedArgs.initY),
-                Infinity
-            );
+        let pathParams;
+        switch (updatedArgs.pathType) {
+            case pathType.Ellipse:
+                pathParams = updatedArgs.EPParams!;
+                updatedArgs.sourcePath = new EllipsePath(
+                    new Vec2D(pathParams.centerX, pathParams.centerY),
+                    pathParams.xAxis,
+                    pathParams.yAxis,
+                    pathParams.period,
+                    pathParams.direction
+                );
+                updatedArgs.pathPause = pathParams.pause;
+                break;
+            case pathType.Line:
+                pathParams = updatedArgs.LPParams!;
+                updatedArgs.sourcePath = new LinePath(
+                    pathParams.points,
+                    pathParams.period
+                );
+                updatedArgs.pathPause = pathParams.pause;
+                break;
+            case pathType.Bezier:
+                pathParams = updatedArgs.BPParams!;
+                updatedArgs.sourcePath = new BezierPath(
+                    pathParams.points,
+                    pathParams.controlPoints,
+                    pathParams.period
+                );
+                updatedArgs.pathPause = pathParams.pause;
+                break;
+            default:
+                updatedArgs.sourcePath = new StillPath(
+                    new Vec2D(updatedArgs.initX, updatedArgs.initY),
+                    Infinity
+                );
+                updatedArgs.pathPause = 0;
         }
         for (let param of ANGLE_PARAMS) {
             updatedArgs[param] = (Number(updatedArgs[param]) * Math.PI) / 180;

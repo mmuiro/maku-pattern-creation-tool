@@ -1,26 +1,45 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { Box, Divider, Flex, useBreakpointValue } from '@chakra-ui/react';
 import Canvas from '../Canvas';
 import EditorMenu from '../components/EditorMenu';
 import { DEFAULTS, PatternArgs } from '../maku-classes/Pattern';
-import PatternEditor from '../components/PatternEditor';
+
+export interface BooleanMap {
+    [key: string]: Boolean;
+}
 
 const EditorPage: React.FC<any> = () => {
     const [patternParamsList, setPatternParamsList] = useState<PatternArgs[]>([
         { ...DEFAULTS },
     ]);
+    const editorParamsList = useRef<PatternArgs[]>([{ ...DEFAULTS }]);
+    const editorCheckedParamsList = useRef<BooleanMap[]>([
+        { 'Rotation Reversing': false },
+    ]);
 
-    const designatedPatternSetter: Function = useCallback(
-        (index: number) =>
-            useCallback(
-                (patternParams: PatternArgs) => {
-                    patternParamsList[index] = patternParams;
-                    setPatternParamsList((test) => [...test]);
-                },
-                [patternParamsList]
-            ),
-        [patternParamsList]
-    );
+    const getDefaultPreFreezeParams = () => {
+        let pre: PatternArgs = { ...DEFAULTS };
+        for (let prop in pre) {
+            if (typeof pre[prop] === 'number' && !isFinite(pre[prop] as number))
+                pre[prop] = 0;
+        }
+        return pre;
+    };
+
+    const editorPreFreezeParamsList = useRef<PatternArgs[]>([
+        getDefaultPreFreezeParams(),
+    ]);
+
+    const applyChanges = () => {
+        setPatternParamsList([...editorParamsList.current]);
+    };
+
+    const addPattern = useCallback(() => {
+        editorParamsList.current.push({ ...DEFAULTS });
+        editorCheckedParamsList.current.push({ 'Rotation Reversing': false });
+        editorPreFreezeParamsList.current.push(getDefaultPreFreezeParams());
+        applyChanges();
+    }, [patternParamsList, applyChanges]);
 
     const canvasAR: number = useBreakpointValue({
         base: 1,
@@ -63,10 +82,15 @@ const EditorPage: React.FC<any> = () => {
                         backgroundColor: '#E2E8F0',
                     },
                 }}
+                position="relative"
             >
-                <EditorMenu>
-                    <PatternEditor patternSetter={designatedPatternSetter(0)} />
-                </EditorMenu>
+                <EditorMenu
+                    addPatternFn={addPattern}
+                    updatePatterns={applyChanges}
+                    patternParamsList={editorParamsList}
+                    patternCheckedParamsList={editorCheckedParamsList}
+                    patternPreFreezeParamsList={editorPreFreezeParamsList}
+                />
             </Box>
         </Flex>
     );
