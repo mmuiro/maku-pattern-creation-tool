@@ -33,6 +33,14 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
         setter(!rerender);
     };
 
+    const createHandleRemove = (i: number) => (e: any) => {
+        e.preventDefault();
+        props.patternParamsList.current.splice(i, 1);
+        props.patternCheckedParamsList.current.splice(i, 1);
+        props.patternPreFreezeParamsList.current.splice(i, 1);
+        forceRerender();
+    };
+
     const handleAdd = (e: any) => {
         e.preventDefault();
         props.addPatternFn();
@@ -85,6 +93,11 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
                             colorSetter={createColorSetter(i)}
                             DCP={displayColorPickers[i]}
                             setDCP={createDisplaySetter(i)}
+                            removeSelf={createHandleRemove(i)}
+                            title={`Pattern ${i + 1}`}
+                            canRemove={
+                                props.patternParamsList.current.length > 1
+                            }
                         />
                         <Divider orientation="horizontal" my={4} />
                     </React.Fragment>

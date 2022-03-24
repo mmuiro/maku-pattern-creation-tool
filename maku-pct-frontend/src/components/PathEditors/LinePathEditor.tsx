@@ -18,7 +18,12 @@ interface LPEditorProps {
 const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
     const { params, rerenderer } = props;
     const points = params.points;
+    const canRemove = points.length > 2;
 
+    const createRemovePoint = (i: number) => (e: any) => {
+        points.splice(i, 1);
+        rerenderer();
+    };
     const createHandleChangePointX =
         (i: number) => (vStr: string, vNum: number) => {
             points[i].x = vNum;
@@ -36,8 +41,8 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
     };
 
     return (
-        <SimpleGrid columns={2} columnGap={6} rowGap={4} w="full">
-            <GridItem colStart={1} colSpan={1}>
+        <SimpleGrid columns={2} columnGap={6} rowGap={1} w="full">
+            <GridItem colStart={1} colSpan={1} pb={3}>
                 <FormLabel fontSize="sm">Period</FormLabel>
                 <NumberInput
                     size="sm"
@@ -50,7 +55,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                     <NumberInputField />
                 </NumberInput>
             </GridItem>
-            <GridItem colStart={2} colSpan={1}>
+            <GridItem colStart={2} colSpan={1} pb={3}>
                 <FormLabel fontSize="sm">Pause</FormLabel>
                 <NumberInput
                     size="sm"
@@ -62,6 +67,9 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                 >
                     <NumberInputField />
                 </NumberInput>
+            </GridItem>
+            <GridItem colStart={1} colSpan={2}>
+                <FormLabel fontSize="sm">Points</FormLabel>
             </GridItem>
             {params.points.map((point, i) => (
                 <React.Fragment key={i}>
@@ -87,6 +95,23 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                             <NumberInputField />
                         </NumberInput>
                     </GridItem>
+                    {canRemove && (
+                        <GridItem
+                            colSpan={2}
+                            colStart={1}
+                            display="flex"
+                            justifyContent="end"
+                        >
+                            <Button
+                                size="sm"
+                                variant="link"
+                                colorScheme="red"
+                                onClick={createRemovePoint(i)}
+                            >
+                                Remove
+                            </Button>
+                        </GridItem>
+                    )}
                 </React.Fragment>
             ))}
             <GridItem
@@ -94,6 +119,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                 justifyContent="end"
                 colStart={2}
                 colSpan={1}
+                pt={3}
             >
                 <Button
                     variant="link"

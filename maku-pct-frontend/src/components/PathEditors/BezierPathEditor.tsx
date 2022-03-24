@@ -20,6 +20,13 @@ interface BPEditorProps {
 const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
     const { params, rerenderer } = props;
     const { points, controlPoints } = params;
+    const canRemove = params.points.length > 2;
+
+    const createRemovePoint = (i: number) => (e: any) => {
+        points.splice(i, 1);
+        controlPoints.splice(i, 1);
+        rerenderer();
+    };
 
     const createHandleChangePointX =
         (i: number) => (vStr: string, vNum: number) => {
@@ -49,15 +56,15 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
         rerenderer();
     };
 
-    const colResponsive = (i: number, w: number) =>
+    const colResponsive = (i: number, w: number, s: number = 1) =>
         useBreakpointValue({
             base: { colStart: 1, colSpan: w },
-            md: { colStart: i, colSpan: 1 },
+            md: { colStart: i, colSpan: s },
         })!;
 
     return (
-        <SimpleGrid columns={2} columnGap={6} rowGap={4} w="full">
-            <GridItem colStart={1} colSpan={1}>
+        <SimpleGrid columns={4} columnGap={6} rowGap={1} w="full">
+            <GridItem colStart={1} colSpan={2} pt={3}>
                 <FormLabel fontSize="sm">Period</FormLabel>
                 <NumberInput
                     size="sm"
@@ -70,7 +77,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     <NumberInputField />
                 </NumberInput>
             </GridItem>
-            <GridItem colStart={2} colSpan={1}>
+            <GridItem colStart={3} colSpan={2} pt={3}>
                 <FormLabel fontSize="sm">Pause</FormLabel>
                 <NumberInput
                     size="sm"
@@ -83,77 +90,86 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     <NumberInputField />
                 </NumberInput>
             </GridItem>
-            <GridItem {...colResponsive(1, 2)}>
-                <FormLabel fontSize="sm">Points</FormLabel>
-                <SimpleGrid columns={2} columnGap={6} rowGap={4}>
-                    {points.map((point, i) => (
-                        <React.Fragment key={i}>
-                            <GridItem colStart={1} colSpan={1}>
-                                <FormLabel fontSize="sm">X{i}</FormLabel>
-                                <NumberInput
-                                    size="sm"
-                                    variant="filled"
-                                    defaultValue={points[i].x}
-                                    onChange={createHandleChangePointX(i)}
-                                >
-                                    <NumberInputField />
-                                </NumberInput>
-                            </GridItem>
-                            <GridItem colStart={2} colSpan={1} key={i}>
-                                <FormLabel fontSize="sm">Y{i}</FormLabel>
-                                <NumberInput
-                                    size="sm"
-                                    variant="filled"
-                                    defaultValue={points[i].y}
-                                    onChange={createHandleChangePointY(i)}
-                                >
-                                    <NumberInputField />
-                                </NumberInput>
-                            </GridItem>
-                        </React.Fragment>
-                    ))}
-                </SimpleGrid>
+            <GridItem {...colResponsive(1, 4, 2)} pt={3} pb={2}>
+                <Text fontSize="sm" fontWeight="semibold">
+                    Points
+                </Text>
             </GridItem>
-            <GridItem {...colResponsive(2, 2)}>
-                <FormLabel fontSize="sm">Control Points</FormLabel>
-                <SimpleGrid columns={2} columnGap={6} rowGap={4}>
-                    {controlPoints.map((point, i) => (
-                        <React.Fragment key={i}>
-                            <GridItem colStart={1} colSpan={1}>
-                                <FormLabel fontSize="sm">X{i}</FormLabel>
-                                <NumberInput
-                                    size="sm"
-                                    variant="filled"
-                                    defaultValue={controlPoints[i].x}
-                                    onChange={createHandleChangeControlPointX(
-                                        i
-                                    )}
-                                >
-                                    <NumberInputField />
-                                </NumberInput>
-                            </GridItem>
-                            <GridItem colStart={2} colSpan={1} key={i}>
-                                <FormLabel fontSize="sm">Y{i}</FormLabel>
-                                <NumberInput
-                                    size="sm"
-                                    variant="filled"
-                                    defaultValue={controlPoints[i].y}
-                                    onChange={createHandleChangeControlPointY(
-                                        i
-                                    )}
-                                >
-                                    <NumberInputField />
-                                </NumberInput>
-                            </GridItem>
-                        </React.Fragment>
-                    ))}
-                </SimpleGrid>
+            <GridItem {...colResponsive(3, 4, 2)} pt={3} pb={2}>
+                <Text fontSize="sm" fontWeight="semibold">
+                    Control Points
+                </Text>
             </GridItem>
+            {points.map((_, i) => (
+                <React.Fragment key={i}>
+                    <GridItem colStart={1} colSpan={1} pb={1}>
+                        <FormLabel fontSize="sm">X{i}</FormLabel>
+                        <NumberInput
+                            size="sm"
+                            variant="filled"
+                            defaultValue={points[i].x}
+                            onChange={createHandleChangePointX(i)}
+                        >
+                            <NumberInputField />
+                        </NumberInput>
+                    </GridItem>
+                    <GridItem colStart={2} colSpan={1} pb={1}>
+                        <FormLabel fontSize="sm">Y{i}</FormLabel>
+                        <NumberInput
+                            size="sm"
+                            variant="filled"
+                            defaultValue={points[i].y}
+                            onChange={createHandleChangePointY(i)}
+                        >
+                            <NumberInputField />
+                        </NumberInput>
+                    </GridItem>
+                    <GridItem colStart={3} colSpan={1} pb={1}>
+                        <FormLabel fontSize="sm">X{i}</FormLabel>
+                        <NumberInput
+                            size="sm"
+                            variant="filled"
+                            defaultValue={controlPoints[i].x}
+                            onChange={createHandleChangeControlPointX(i)}
+                        >
+                            <NumberInputField />
+                        </NumberInput>
+                    </GridItem>
+                    <GridItem colStart={4} colSpan={1} pb={1}>
+                        <FormLabel fontSize="sm">Y{i}</FormLabel>
+                        <NumberInput
+                            size="sm"
+                            variant="filled"
+                            defaultValue={controlPoints[i].y}
+                            onChange={createHandleChangeControlPointY(i)}
+                        >
+                            <NumberInputField />
+                        </NumberInput>
+                    </GridItem>
+                    {canRemove && (
+                        <GridItem
+                            colSpan={4}
+                            colStart={1}
+                            display="flex"
+                            justifyContent="end"
+                        >
+                            <Button
+                                size="sm"
+                                variant="link"
+                                colorScheme="red"
+                                onClick={createRemovePoint(i)}
+                            >
+                                Remove
+                            </Button>
+                        </GridItem>
+                    )}
+                </React.Fragment>
+            ))}
             <GridItem
                 display="flex"
                 justifyContent="end"
-                colStart={2}
-                colSpan={1}
+                {...colResponsive(3, 4, 2)}
+                pt={3}
             >
                 <Button
                     variant="link"

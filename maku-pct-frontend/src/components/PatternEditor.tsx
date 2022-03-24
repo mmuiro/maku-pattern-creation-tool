@@ -26,7 +26,10 @@ import {
     Stack,
     Radio,
     RadioGroup,
+    Button,
 } from '@chakra-ui/react';
+import { CgRemove } from 'react-icons/cg';
+
 import EllipsePathEditor from './PathEditors/EllipsePathEditor';
 import LinePathEditor from './PathEditors/LinePathEditor';
 import BezierPathEditor from './PathEditors/BezierPathEditor';
@@ -99,6 +102,9 @@ interface PatternEditorArgs {
     colorSetter: Function;
     DCP: Boolean;
     setDCP: Function;
+    removeSelf: Function;
+    title: string;
+    canRemove: Boolean;
 }
 
 interface PathParamKeeper {
@@ -124,6 +130,9 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
         colorSetter,
         DCP,
         setDCP,
+        removeSelf,
+        title,
+        canRemove,
     } = props;
 
     const defaultPathParams: PathParamKeeper = {
@@ -305,6 +314,24 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
 
     return (
         <VStack spacing={4} justifyContent="flex-start">
+            <Flex justifyContent="space-between" w="full">
+                <Text color="blue.400" fontSize="2xl" fontWeight="semibold">
+                    {title}
+                </Text>
+                {canRemove ? (
+                    <Button
+                        colorScheme="red"
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<CgRemove />}
+                        onClick={(e) => removeSelf(e)}
+                    >
+                        Remove
+                    </Button>
+                ) : (
+                    <></>
+                )}
+            </Flex>
             {/* Timing Parameters */}
             <VStack spacing={1} alignItems="flex-start" w="full">
                 <Text fontSize="xl" color="blue.400" fontWeight="semibold">
@@ -466,32 +493,37 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                 </SimpleGrid>
             </VStack>
             {/* Path Params */}
-            <RadioGroup
-                alignItems="start"
-                w="full"
-                h="fit-content"
-                defaultValue="None"
-                onChange={(value) => {
-                    patternParams.pathType = value as pathType;
-                    if (value !== 'None')
-                        patternParams[PATH_TYPE_TO_PARAM[value]] =
-                            defaultPathParams[PATH_TYPE_TO_PARAM[value]];
-                    rerenderer();
-                }}
-            >
-                <FormLabel>Path Type</FormLabel>
-                <Stack direction="row" spacing={4} flexWrap="wrap">
-                    {PATH_TYPES.map((type, i) => (
-                        <Radio value={type} key={i}>
-                            {type}
-                        </Radio>
-                    ))}
-                </Stack>
-            </RadioGroup>
             <VStack spacing={1} alignItems="flex-start" w="full">
-                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                <Text
+                    fontSize="xl"
+                    color="blue.400"
+                    fontWeight="semibold"
+                    alignSelf="start"
+                >
                     Source Path
                 </Text>
+                <RadioGroup
+                    alignItems="start"
+                    w="full"
+                    h="fit-content"
+                    defaultValue="None"
+                    onChange={(value) => {
+                        patternParams.pathType = value as pathType;
+                        if (value !== 'None')
+                            patternParams[PATH_TYPE_TO_PARAM[value]] =
+                                defaultPathParams[PATH_TYPE_TO_PARAM[value]];
+                        rerenderer();
+                    }}
+                >
+                    <FormLabel>Path Type</FormLabel>
+                    <Stack direction="row" spacing={4} flexWrap="wrap">
+                        {PATH_TYPES.map((type, i) => (
+                            <Radio value={type} key={i}>
+                                {type}
+                            </Radio>
+                        ))}
+                    </Stack>
+                </RadioGroup>
                 {pathTypeToEditor[patternParams.pathType]}
             </VStack>
         </VStack>
