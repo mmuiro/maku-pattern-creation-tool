@@ -15,16 +15,18 @@ import Vec2D from '../../maku-classes/Vec2D';
 interface BPEditorProps {
     params: BPParams;
     rerenderer: Function;
+    enabled: Boolean;
 }
 
 const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
-    const { params, rerenderer } = props;
-    const { points, controlPoints } = params;
+    const { params, rerenderer, enabled } = props;
+    const { points, controlPoints, idList } = params;
     const canRemove = params.points.length > 2;
 
     const createRemovePoint = (i: number) => (e: any) => {
         points.splice(i, 1);
         controlPoints.splice(i, 1);
+        idList.splice(i, 1);
         rerenderer();
     };
 
@@ -53,6 +55,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
         const lastCPoint = controlPoints[controlPoints.length - 1];
         points.push(lastPoint.copy());
         controlPoints.push(lastCPoint.copy());
+        idList.push(Number(idList[idList.length - 1]) + 1);
         rerenderer();
     };
 
@@ -73,6 +76,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     onChange={(vStr: string, vNum: number) =>
                         (params.period = vNum)
                     }
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -86,6 +90,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     onChange={(vStr: string, vNum: number) =>
                         (params.pause = vNum)
                     }
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -101,7 +106,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                 </Text>
             </GridItem>
             {points.map((_, i) => (
-                <React.Fragment key={i}>
+                <React.Fragment key={params.idList[i]}>
                     <GridItem colStart={1} colSpan={1} pb={1}>
                         <FormLabel fontSize="sm">X{i}</FormLabel>
                         <NumberInput
@@ -109,6 +114,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].x}
                             onChange={createHandleChangePointX(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -120,6 +126,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].y}
                             onChange={createHandleChangePointY(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -131,6 +138,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={controlPoints[i].x}
                             onChange={createHandleChangeControlPointX(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -142,6 +150,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={controlPoints[i].y}
                             onChange={createHandleChangeControlPointY(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -158,6 +167,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                                 variant="link"
                                 colorScheme="red"
                                 onClick={createRemovePoint(i)}
+                                isDisabled={!enabled}
                             >
                                 Remove
                             </Button>
@@ -175,6 +185,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     variant="link"
                     onClick={handleAddPair}
                     colorScheme="blue"
+                    isDisabled={!enabled}
                 >
                     Add Point Pair
                 </Button>

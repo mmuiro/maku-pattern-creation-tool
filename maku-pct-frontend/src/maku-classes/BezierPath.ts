@@ -134,6 +134,7 @@ export default class BezierPath implements Path {
     draw(ctx: CanvasRenderingContext2D) {
         ctx.save();
         ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(this.points[0].x, this.points[0].y);
         for (let segI = 0; segI < this.segmentCount; segI++) {
@@ -151,7 +152,7 @@ export default class BezierPath implements Path {
         ctx.fillStyle = 'rgb(22, 94, 201)';
         for (let i = 0; i <= this.segmentCount; i++) {
             ctx.beginPath();
-            ctx.arc(this.points[i].x, this.points[i].y, 5, 0, 2 * Math.PI);
+            ctx.arc(this.points[i].x, this.points[i].y, 10, 0, 2 * Math.PI);
             ctx.arc(
                 this.controlPoints[i].x,
                 this.controlPoints[i].y,

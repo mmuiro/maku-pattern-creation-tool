@@ -13,15 +13,17 @@ import Vec2D from '../../maku-classes/Vec2D';
 interface LPEditorProps {
     params: LPParams;
     rerenderer: Function;
+    enabled: Boolean;
 }
 
 const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
-    const { params, rerenderer } = props;
-    const points = params.points;
+    const { params, rerenderer, enabled } = props;
+    const { points, idList } = params;
     const canRemove = points.length > 2;
 
     const createRemovePoint = (i: number) => (e: any) => {
         points.splice(i, 1);
+        idList.splice(i, 1);
         rerenderer();
     };
     const createHandleChangePointX =
@@ -37,6 +39,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
     const handleAddPoint = () => {
         const lastPoint = points[points.length - 1];
         points.push(lastPoint.copy());
+        idList.push(Number(idList[idList.length - 1]) + 1);
         rerenderer();
     };
 
@@ -51,6 +54,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                     onChange={(vStr: string, vNum: number) =>
                         (params.period = vNum)
                     }
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -64,6 +68,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                     onChange={(vStr: string, vNum: number) =>
                         (params.pause = vNum)
                     }
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -71,8 +76,8 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
             <GridItem colStart={1} colSpan={2}>
                 <FormLabel fontSize="sm">Points</FormLabel>
             </GridItem>
-            {params.points.map((point, i) => (
-                <React.Fragment key={i}>
+            {params.points.map((_, i) => (
+                <React.Fragment key={idList[i]}>
                     <GridItem colStart={1} colSpan={1}>
                         <FormLabel fontSize="sm">X{i}</FormLabel>
                         <NumberInput
@@ -80,6 +85,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].x}
                             onChange={createHandleChangePointX(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -91,6 +97,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].y}
                             onChange={createHandleChangePointY(i)}
+                            isDisabled={!enabled}
                         >
                             <NumberInputField />
                         </NumberInput>
@@ -107,6 +114,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                                 variant="link"
                                 colorScheme="red"
                                 onClick={createRemovePoint(i)}
+                                isDisabled={!enabled}
                             >
                                 Remove
                             </Button>
@@ -125,6 +133,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                     variant="link"
                     onClick={handleAddPoint}
                     colorScheme="blue"
+                    isDisabled={!enabled}
                 >
                     Add Point
                 </Button>

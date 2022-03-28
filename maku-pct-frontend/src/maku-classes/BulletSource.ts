@@ -128,7 +128,19 @@ export default class BulletSource {
         this.bullets.forEach((bullet: Bullet) => {
             bullet.draw(ctx);
         });
+    }
+
+    editorDraw(ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = this.bulletColor.toString();
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, 24, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
         this.path.draw(ctx);
+        ctx.restore();
     }
 
     fire() {

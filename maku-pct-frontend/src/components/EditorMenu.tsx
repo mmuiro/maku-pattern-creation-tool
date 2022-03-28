@@ -2,11 +2,12 @@ import {
     Box,
     Button,
     Divider,
+    Text,
     HStack,
     IconButton,
     VStack,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pattern, PatternArgs } from '../maku-classes/Pattern';
 import { useState } from 'react';
 import { ColorProps, PatternEditor } from '../components/PatternEditor';
@@ -21,6 +22,8 @@ interface EditorMenuProps {
     patternCheckedParamsList: React.MutableRefObject<BooleanMap[]>;
     patternPreFreezeParamsList: React.MutableRefObject<PatternArgs[]>;
     children?: React.ReactNode;
+    editorMode: Boolean;
+    toggleEditor: Function;
 }
 
 const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
@@ -28,6 +31,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
     const [displayColorPickers, setDisplayColorPickers] = useState<Boolean[]>(
         props.patternParamsList.current.map(() => false)
     );
+    const keys = useRef<React.Key[]>([0]);
 
     const forceRerender = () => {
         setter(!rerender);
@@ -38,11 +42,13 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
         props.patternParamsList.current.splice(i, 1);
         props.patternCheckedParamsList.current.splice(i, 1);
         props.patternPreFreezeParamsList.current.splice(i, 1);
+        keys.current.splice(i, 1);
         forceRerender();
     };
 
     const handleAdd = (e: any) => {
         e.preventDefault();
+        keys.current.push(Number(keys.current[keys.current.length - 1]) + 1);
         props.addPatternFn();
     };
 
@@ -77,10 +83,40 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
     };
 
     return (
-        <VStack py={2}>
-            <Box pl={2} pr={6} maxH="full" mb={2} w="full">
+        <VStack py={1} maxH="full" borderRadius="md" borderColor="gray.100">
+            <Text
+                color="blue.400"
+                alignSelf="start"
+                fontSize="2xl"
+                fontWeight="semibold"
+                px={2}
+            >
+                Editor
+            </Text>
+            <Divider orientation="horizontal" />
+            <Box
+                pl={2}
+                pr={6}
+                maxH="full"
+                mb={2}
+                w="full"
+                overflowY="scroll"
+                sx={{
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#EDF2F7',
+                        borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                        backgroundColor: '#E2E8F0',
+                    },
+                }}
+                position="relative"
+            >
                 {props.patternParamsList.current.map((params, i) => (
-                    <React.Fragment key={i}>
+                    <React.Fragment key={keys.current[i]}>
                         <PatternEditor
                             patternParams={props.patternParamsList.current[i]}
                             preFreezeParams={
@@ -98,18 +134,25 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
                             canRemove={
                                 props.patternParamsList.current.length > 1
                             }
+                            editorMode={props.editorMode}
                         />
-                        <Divider orientation="horizontal" my={4} />
+                        {i < keys.current.length - 1 && (
+                            <Divider orientation="horizontal" my={4} />
+                        )}
                     </React.Fragment>
                 ))}
             </Box>
-            <HStack>
+            <Divider orientation="horizontal" />
+            <HStack spacing={4}>
                 <Button
-                    onClick={handleApplyChanges}
+                    onClick={(e) => {
+                        if (props.editorMode) handleApplyChanges(e);
+                        props.toggleEditor();
+                    }}
                     colorScheme="twitter"
-                    variant="outline"
+                    variant="ghost"
                 >
-                    Apply Changes
+                    {props.editorMode ? 'Apply Changes' : 'Enable Editor'}
                 </Button>
                 <IconButton
                     aria-label="Add Pattern"

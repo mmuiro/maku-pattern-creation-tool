@@ -1,3 +1,4 @@
+import React from 'react';
 import BezierPath from './BezierPath';
 import BulletSource from './BulletSource';
 import Color from './Color';
@@ -29,11 +30,13 @@ export interface EPParams extends PathParams {
 
 export interface LPParams extends PathParams {
     points: Vec2D[];
+    idList: number[];
 }
 
 export interface BPParams extends PathParams {
     points: Vec2D[];
     controlPoints: Vec2D[];
+    idList: number[];
 }
 
 export interface PatternArgs {
@@ -74,6 +77,7 @@ export interface PatternArgs {
         | Vec2D
         | pathType
         | PathParams
+        | string
         | undefined;
 }
 
@@ -213,6 +217,10 @@ export class Pattern {
 
     draw(ctx: CanvasRenderingContext2D) {
         this.source.draw(ctx);
+    }
+
+    editorDraw(ctx: CanvasRenderingContext2D) {
+        this.source.editorDraw(ctx);
     }
 
     fire() {

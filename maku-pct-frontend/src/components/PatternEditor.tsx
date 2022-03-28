@@ -7,10 +7,8 @@ import {
     pathType,
     PatternArgs,
 } from '../maku-classes/Pattern';
-import React, { useCallback, useState } from 'react';
-import Path from '../maku-classes/Path';
+import React from 'react';
 import ColorPicker from './ColorPicker';
-import Color from '../maku-classes/Color';
 import { BooleanMap } from '../views/EditorPage';
 import {
     GridItem,
@@ -94,7 +92,7 @@ export interface GridParams {
     colSpan: number;
 }
 
-interface PatternEditorArgs {
+interface PatternEditorProps {
     patternParams: PatternArgs;
     preFreezeParams: PatternArgs;
     checkedParams: BooleanMap;
@@ -105,6 +103,7 @@ interface PatternEditorArgs {
     removeSelf: Function;
     title: string;
     canRemove: Boolean;
+    editorMode: Boolean;
 }
 
 interface PathParamKeeper {
@@ -121,7 +120,7 @@ export interface ColorProps {
     a: number;
 }
 
-export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
+export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
     const {
         patternParams,
         checkedParams,
@@ -133,6 +132,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
         removeSelf,
         title,
         canRemove,
+        editorMode,
     } = props;
 
     const defaultPathParams: PathParamKeeper = {
@@ -152,6 +152,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
             ],
             pause: 0,
             period: 60,
+            idList: [0, 1],
         },
         BPParams: {
             points: [
@@ -164,6 +165,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
             ],
             pause: 0,
             period: 60,
+            idList: [0, 1],
         },
     };
 
@@ -226,6 +228,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                                 }
                                 rerenderer();
                             }}
+                            isDisabled={!editorMode}
                         ></Checkbox>
                     )}
                 </Flex>
@@ -239,7 +242,9 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                     max={max}
                     colorScheme="blue"
                     variant="filled"
-                    isDisabled={isInvalid || Boolean(disabledByExternal!)} // TypeScript moment ????
+                    isDisabled={
+                        isInvalid || Boolean(disabledByExternal!) || !editorMode
+                    } // TypeScript moment ????
                     defaultValue={String(patternParams[param] as number)}
                 >
                     <NumberInputField />
@@ -273,14 +278,13 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                 <Checkbox
                     isChecked={false || Boolean(checkedParams[param]!)}
                     onChange={(e) => {
-                        console.log(checkedParams[param]);
                         checkedParams[param] = e.target.checked;
                         if (patternParams.hasOwnProperty(param)) {
                             patternParams[param] = e.target.checked;
                         }
                         rerenderer();
                     }}
-                    isDisabled={Boolean(disabledByExternal)}
+                    isDisabled={Boolean(disabledByExternal) || !editorMode}
                     size="lg"
                 >
                     <Text fontSize="sm">Enabled</Text>
@@ -296,18 +300,21 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
             <EllipsePathEditor
                 params={patternParams.EPParams}
                 rerenderer={rerenderer}
+                enabled={editorMode}
             ></EllipsePathEditor>
         ),
         Line: (
             <LinePathEditor
                 params={patternParams.LPParams}
                 rerenderer={rerenderer}
+                enabled={editorMode}
             ></LinePathEditor>
         ),
         Bezier: (
             <BezierPathEditor
                 params={patternParams.BPParams}
                 rerenderer={rerenderer}
+                enabled={editorMode}
             ></BezierPathEditor>
         ),
     };
@@ -315,7 +322,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
     return (
         <VStack spacing={4} justifyContent="flex-start">
             <Flex justifyContent="space-between" w="full">
-                <Text color="blue.400" fontSize="2xl" fontWeight="semibold">
+                <Text color="blue.400" fontSize="xl" fontWeight="semibold">
                     {title}
                 </Text>
                 {canRemove ? (
@@ -325,6 +332,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                         variant="ghost"
                         leftIcon={<CgRemove />}
                         onClick={(e) => removeSelf(e)}
+                        isDisabled={!editorMode}
                     >
                         Remove
                     </Button>
@@ -334,7 +342,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
             </Flex>
             {/* Timing Parameters */}
             <VStack spacing={1} alignItems="flex-start" w="full">
-                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                <Text fontSize="lg" color="blue.400" fontWeight="semibold">
                     Timing
                 </Text>
                 <SimpleGrid columnGap={6} columns={3} w="full">
@@ -361,7 +369,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
 
             {/* Bullet Source Parameters */}
             <VStack spacing={2} alignItems="flex-start" w="full">
-                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                <Text fontSize="lg" color="blue.400" fontWeight="semibold">
                     Bullet Source
                 </Text>
                 <SimpleGrid columnGap={6} columns={3} rowGap={4} w="full">
@@ -413,7 +421,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
 
             {/* Burst/Spread Parameters */}
             <VStack spacing={1} alignItems="flex-start" w="full">
-                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                <Text fontSize="lg" color="blue.400" fontWeight="semibold">
                     Bursts/Spread
                 </Text>
                 <SimpleGrid columnGap={6} columns={2} w="full">
@@ -431,7 +439,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
 
             {/* Bullet Parameters */}
             <VStack spacing={1} alignItems="flex-start" w="full">
-                <Text fontSize="xl" color="blue.400" fontWeight="semibold">
+                <Text fontSize="lg" color="blue.400" fontWeight="semibold">
                     Bullets
                 </Text>
                 <SimpleGrid columnGap={6} columns={2} rowGap={2} w="full">
@@ -495,7 +503,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
             {/* Path Params */}
             <VStack spacing={1} alignItems="flex-start" w="full">
                 <Text
-                    fontSize="xl"
+                    fontSize="lg"
                     color="blue.400"
                     fontWeight="semibold"
                     alignSelf="start"
@@ -514,6 +522,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorArgs) => {
                                 defaultPathParams[PATH_TYPE_TO_PARAM[value]];
                         rerenderer();
                     }}
+                    isDisabled={!editorMode}
                 >
                     <FormLabel>Path Type</FormLabel>
                     <Stack direction="row" spacing={4} flexWrap="wrap">

@@ -16,10 +16,11 @@ import { EPParams } from '../../maku-classes/Pattern';
 interface EPEditorProps {
     params: EPParams;
     rerenderer: Function;
+    enabled: Boolean;
 }
 
 const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
-    let params = props.params;
+    const { params, enabled } = props;
     return (
         <SimpleGrid columns={2} columnGap={6} rowGap={4} w="full">
             <GridItem colStart={1} colSpan={1}>
@@ -30,6 +31,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.centerX = vNum)}
                     defaultValue={params.centerX}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -42,6 +44,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.centerY = vNum)}
                     defaultValue={params.centerY}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -54,6 +57,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.xAxis = vNum)}
                     defaultValue={params.xAxis}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -66,6 +70,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.yAxis = vNum)}
                     defaultValue={params.yAxis}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -78,6 +83,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.period = vNum)}
                     defaultValue={params.period}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -90,6 +96,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     variant="filled"
                     onChange={(vString, vNum) => (params.pause = vNum)}
                     defaultValue={params.pause}
+                    isDisabled={!enabled}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -104,6 +111,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                         params.direction = parseInt(value);
                         props.rerenderer();
                     }}
+                    isDisabled={!enabled}
                 >
                     <FormLabel fontSize="sm">Rotation Direction</FormLabel>
                     <Stack direction="row" spacing={6}>

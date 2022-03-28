@@ -12,6 +12,9 @@ const EditorPage: React.FC<any> = () => {
     const [patternParamsList, setPatternParamsList] = useState<PatternArgs[]>([
         { ...DEFAULTS },
     ]);
+
+    const [editorMode, setEditorMode] = useState(true);
+
     const editorParamsList = useRef<PatternArgs[]>([{ ...DEFAULTS }]);
     const editorCheckedParamsList = useRef<BooleanMap[]>([
         { 'Rotation Reversing': false },
@@ -41,12 +44,17 @@ const EditorPage: React.FC<any> = () => {
         applyChanges();
     }, [patternParamsList, applyChanges]);
 
+    const toggleEditor = () => {
+        setEditorMode(!editorMode);
+    };
+
     const canvasAR: number = useBreakpointValue({
         base: 1,
-        xl: ((window.innerWidth / window.innerHeight) * 2) / 3,
+        lg: ((window.innerWidth / window.innerHeight) * 2) / 3,
     })!;
 
     const baseSize = 1600;
+    console.log(canvasAR);
     return (
         <Flex h="100vh" direction={{ base: 'column', xl: 'row' }}>
             <Box
@@ -62,6 +70,9 @@ const EditorPage: React.FC<any> = () => {
                     width={canvasAR * baseSize}
                     height={baseSize}
                     patterns={patternParamsList}
+                    editorMode={editorMode}
+                    editorParamsList={editorParamsList.current}
+                    applyEditorChanges={applyChanges}
                 ></Canvas>
             </Box>
             <Box
@@ -69,20 +80,8 @@ const EditorPage: React.FC<any> = () => {
                 flexBasis={0}
                 my={4}
                 mx={1}
-                overflowY="scroll"
-                sx={{
-                    '&::-webkit-scrollbar': {
-                        width: '8px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#EDF2F7',
-                        borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                        backgroundColor: '#E2E8F0',
-                    },
-                }}
                 position="relative"
+                maxH="full"
             >
                 <EditorMenu
                     addPatternFn={addPattern}
@@ -90,6 +89,8 @@ const EditorPage: React.FC<any> = () => {
                     patternParamsList={editorParamsList}
                     patternCheckedParamsList={editorCheckedParamsList}
                     patternPreFreezeParamsList={editorPreFreezeParamsList}
+                    editorMode={editorMode}
+                    toggleEditor={toggleEditor}
                 />
             </Box>
         </Flex>
