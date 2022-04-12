@@ -1,4 +1,5 @@
 import React from 'react';
+import { StringMap } from '../views/EditorPage';
 import BezierPath from './BezierPath';
 import BulletSource from './BulletSource';
 import Color from './Color';
@@ -20,6 +21,16 @@ export interface PathParams {
     period: number;
 }
 
+export interface SVec2D {
+    x: string;
+    y: string;
+}
+
+export interface PointStringPair {
+    point: Vec2D;
+    pointAS: SVec2D;
+}
+
 export interface EPParams extends PathParams {
     xAxis: number;
     yAxis: number;
@@ -29,13 +40,13 @@ export interface EPParams extends PathParams {
 }
 
 export interface LPParams extends PathParams {
-    points: Vec2D[];
+    pairs: PointStringPair[];
     idList: number[];
 }
 
 export interface BPParams extends PathParams {
-    points: Vec2D[];
-    controlPoints: Vec2D[];
+    pairs: PointStringPair[];
+    controlPairs: PointStringPair[];
     idList: number[];
 }
 
@@ -67,6 +78,7 @@ export interface PatternArgs {
     EPParams?: EPParams;
     LPParams?: LPParams;
     BPParams?: BPParams;
+    PParamsAsStrings?: { [s: string]: any }; // replace with appropriate type later
     sourcePath?: Path;
     pathPause?: number;
     [key: string]:
@@ -77,6 +89,7 @@ export interface PatternArgs {
         | Vec2D
         | pathType
         | PathParams
+        | { [s: string]: any }
         | string
         | undefined;
 }
@@ -131,7 +144,7 @@ export class Pattern {
 
     constructor(args: Partial<PatternArgs>) {
         let updatedArgs: PatternArgs = { ...DEFAULTS, ...args };
-        let pathParams;
+        let pathParams, points;
         switch (updatedArgs.pathType) {
             case pathType.Ellipse:
                 pathParams = updatedArgs.EPParams!;
@@ -146,17 +159,22 @@ export class Pattern {
                 break;
             case pathType.Line:
                 pathParams = updatedArgs.LPParams!;
+                points = pathParams.pairs.map((pair) => pair.point);
                 updatedArgs.sourcePath = new LinePath(
-                    pathParams.points,
+                    points,
                     pathParams.period
                 );
                 updatedArgs.pathPause = pathParams.pause;
                 break;
             case pathType.Bezier:
                 pathParams = updatedArgs.BPParams!;
+                points = pathParams.pairs.map((pair) => pair.point);
+                const controlPoints = pathParams.controlPairs.map(
+                    (pair) => pair.point
+                );
                 updatedArgs.sourcePath = new BezierPath(
-                    pathParams.points,
-                    pathParams.controlPoints,
+                    points,
+                    controlPoints,
                     pathParams.period
                 );
                 updatedArgs.pathPause = pathParams.pause;

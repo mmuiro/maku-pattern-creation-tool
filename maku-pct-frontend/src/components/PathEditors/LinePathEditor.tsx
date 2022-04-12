@@ -7,24 +7,29 @@ import {
     SimpleGrid,
 } from '@chakra-ui/react';
 import React, { Fragment } from 'react';
-import { LPParams } from '../../maku-classes/Pattern';
+import { LPParams, SVec2D } from '../../maku-classes/Pattern';
 import Vec2D from '../../maku-classes/Vec2D';
 
 interface LPEditorProps {
     params: LPParams;
-    rerenderer: Function;
+    updater: Function;
     enabled: Boolean;
 }
 
 const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
-    const { params, rerenderer, enabled } = props;
-    const { points, idList } = params;
+    const { params, updater, enabled } = props;
+    const { pairs, idList } = params;
+    const [points, pointsAS]: [Vec2D[], SVec2D[]] = [[], []];
+    for (let pair of pairs) {
+        points.push(pair.point);
+        pointsAS.push(pair.pointAS);
+    }
     const canRemove = points.length > 2;
 
     const createRemovePoint = (i: number) => (e: any) => {
-        points.splice(i, 1);
+        params.pairs.splice(i, 1);
         idList.splice(i, 1);
-        rerenderer();
+        updater();
     };
     const createHandleChangePointX =
         (i: number) => (vStr: string, vNum: number) => {
@@ -38,9 +43,12 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
 
     const handleAddPoint = () => {
         const lastPoint = points[points.length - 1];
-        points.push(lastPoint.copy());
+        params.pairs.push({
+            point: lastPoint.copy(),
+            pointAS: { x: String(lastPoint.x), y: String(lastPoint.y) },
+        });
         idList.push(Number(idList[idList.length - 1]) + 1);
-        rerenderer();
+        updater();
     };
 
     return (
@@ -76,7 +84,7 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
             <GridItem colStart={1} colSpan={2}>
                 <FormLabel fontSize="sm">Points</FormLabel>
             </GridItem>
-            {params.points.map((_, i) => (
+            {points.map((_, i) => (
                 <React.Fragment key={idList[i]}>
                     <GridItem colStart={1} colSpan={1}>
                         <FormLabel fontSize="sm">X{i}</FormLabel>

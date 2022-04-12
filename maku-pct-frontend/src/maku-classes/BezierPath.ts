@@ -148,37 +148,40 @@ export default class BezierPath implements Path {
             );
         }
         ctx.stroke();
-
-        ctx.fillStyle = 'rgb(22, 94, 201)';
         for (let i = 0; i <= this.segmentCount; i++) {
             ctx.beginPath();
-            ctx.arc(this.points[i].x, this.points[i].y, 10, 0, 2 * Math.PI);
-            ctx.arc(
-                this.controlPoints[i].x,
-                this.controlPoints[i].y,
-                5,
-                0,
-                2 * Math.PI
+            ctx.moveTo(this.controlPoints[i].x, this.controlPoints[i].y);
+            ctx.lineTo(this.points[i].x, this.points[i].y);
+            ctx.lineTo(
+                this.mirrorControlPoints[i].x,
+                this.mirrorControlPoints[i].y
             );
+            ctx.stroke();
+            ctx.fillStyle = 'rgb(22, 94, 201)';
+            ctx.beginPath();
+            ctx.arc(this.points[i].x, this.points[i].y, 10, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = 'rgb(100, 100, 100)';
+            ctx.beginPath();
             ctx.arc(
                 this.mirrorControlPoints[i].x,
                 this.mirrorControlPoints[i].y,
-                5,
+                8,
                 0,
                 2 * Math.PI
             );
             ctx.fill();
+            ctx.fillStyle = 'rgb(0, 200, 40)';
             ctx.beginPath();
-            ctx.moveTo(this.controlPoints[i].x, this.controlPoints[i].y);
-            ctx.lineTo(this.points[i].x, this.points[i].y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(
-                this.mirrorControlPoints[i].x,
-                this.mirrorControlPoints[i].y
+            ctx.arc(
+                this.controlPoints[i].x,
+                this.controlPoints[i].y,
+                8,
+                0,
+                2 * Math.PI
             );
-            ctx.lineTo(this.points[i].x, this.points[i].y);
-            ctx.stroke();
+            ctx.fill();
         }
+        ctx.restore();
     }
 }

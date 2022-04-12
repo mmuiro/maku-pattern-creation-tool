@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { Box, Divider, Flex, useBreakpointValue } from '@chakra-ui/react';
-import Canvas from '../Canvas';
+import Canvas from '../components/Canvas';
 import EditorMenu from '../components/EditorMenu';
 import { DEFAULTS, PatternArgs } from '../maku-classes/Pattern';
 
@@ -8,18 +8,11 @@ export interface BooleanMap {
     [key: string]: Boolean;
 }
 
+export interface StringMap {
+    [key: string]: string;
+}
+
 const EditorPage: React.FC<any> = () => {
-    const [patternParamsList, setPatternParamsList] = useState<PatternArgs[]>([
-        { ...DEFAULTS },
-    ]);
-
-    const [editorMode, setEditorMode] = useState(true);
-
-    const editorParamsList = useRef<PatternArgs[]>([{ ...DEFAULTS }]);
-    const editorCheckedParamsList = useRef<BooleanMap[]>([
-        { 'Rotation Reversing': false },
-    ]);
-
     const getDefaultPreFreezeParams = () => {
         let pre: PatternArgs = { ...DEFAULTS };
         for (let prop in pre) {
@@ -29,20 +22,40 @@ const EditorPage: React.FC<any> = () => {
         return pre;
     };
 
+    const DEFAULTS_AS_STRINGS = (() => {
+        let ret: StringMap = {};
+        for (const [key, value] of Object.entries(DEFAULTS)) {
+            ret[key] = String(value);
+        }
+        return ret;
+    })();
+
+    const [patternParamsList, setPatternParamsList] = useState<PatternArgs[]>([
+        { ...DEFAULTS },
+    ]);
+    const editorParamsList = useRef<PatternArgs[]>([{ ...DEFAULTS }]);
+    const editorParamsAsStringsList = useRef<StringMap[]>([
+        { ...DEFAULTS_AS_STRINGS },
+    ]);
+    const editorCheckedParamsList = useRef<BooleanMap[]>([
+        { 'Rotation Reversing': false },
+    ]);
     const editorPreFreezeParamsList = useRef<PatternArgs[]>([
         getDefaultPreFreezeParams(),
     ]);
 
-    const applyChanges = () => {
+    const [editorMode, setEditorMode] = useState(true);
+    const updatePatterns = () => {
         setPatternParamsList([...editorParamsList.current]);
     };
 
     const addPattern = useCallback(() => {
         editorParamsList.current.push({ ...DEFAULTS });
+        editorParamsAsStringsList.current.push({ ...DEFAULTS_AS_STRINGS });
         editorCheckedParamsList.current.push({ 'Rotation Reversing': false });
         editorPreFreezeParamsList.current.push(getDefaultPreFreezeParams());
-        applyChanges();
-    }, [patternParamsList, applyChanges]);
+        updatePatterns();
+    }, [patternParamsList, updatePatterns]);
 
     const toggleEditor = () => {
         setEditorMode(!editorMode);
@@ -72,7 +85,10 @@ const EditorPage: React.FC<any> = () => {
                     patterns={patternParamsList}
                     editorMode={editorMode}
                     editorParamsList={editorParamsList.current}
-                    applyEditorChanges={applyChanges}
+                    editorParamsAsStringsList={
+                        editorParamsAsStringsList.current
+                    }
+                    updater={updatePatterns}
                 ></Canvas>
             </Box>
             <Box
@@ -85,8 +101,9 @@ const EditorPage: React.FC<any> = () => {
             >
                 <EditorMenu
                     addPatternFn={addPattern}
-                    updatePatterns={applyChanges}
+                    updater={updatePatterns}
                     patternParamsList={editorParamsList}
+                    patternParamsAsStringsList={editorParamsAsStringsList}
                     patternCheckedParamsList={editorCheckedParamsList}
                     patternPreFreezeParamsList={editorPreFreezeParamsList}
                     editorMode={editorMode}

@@ -134,9 +134,9 @@ export default class BulletSource {
         ctx.save();
         ctx.fillStyle = 'white';
         ctx.strokeStyle = this.bulletColor.toString();
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 24, 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         this.path.draw(ctx);

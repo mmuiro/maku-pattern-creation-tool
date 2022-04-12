@@ -9,7 +9,7 @@ import {
 } from '../maku-classes/Pattern';
 import React from 'react';
 import ColorPicker from './ColorPicker';
-import { BooleanMap } from '../views/EditorPage';
+import { BooleanMap, StringMap } from '../views/EditorPage';
 import {
     GridItem,
     VStack,
@@ -92,11 +92,17 @@ export interface GridParams {
     colSpan: number;
 }
 
+export interface SVec2D {
+    x: string;
+    y: string;
+}
+
 interface PatternEditorProps {
     patternParams: PatternArgs;
+    patternParamsAsStrings: StringMap;
     preFreezeParams: PatternArgs;
     checkedParams: BooleanMap;
-    rerenderer: Function;
+    updater: Function;
     colorSetter: Function;
     DCP: Boolean;
     setDCP: Function;
@@ -123,9 +129,10 @@ export interface ColorProps {
 export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
     const {
         patternParams,
+        patternParamsAsStrings,
         checkedParams,
         preFreezeParams,
-        rerenderer,
+        updater,
         colorSetter,
         DCP,
         setDCP,
@@ -146,22 +153,58 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
             direction: 1,
         },
         LPParams: {
-            points: [
-                new Vec2D(patternParams.initX, patternParams.initY),
-                new Vec2D(patternParams.initX, patternParams.initY),
+            pairs: [
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
             ],
             pause: 0,
             period: 60,
             idList: [0, 1],
         },
         BPParams: {
-            points: [
-                new Vec2D(patternParams.initX, patternParams.initY),
-                new Vec2D(patternParams.initX, patternParams.initY),
+            pairs: [
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
             ],
-            controlPoints: [
-                new Vec2D(patternParams.initX, patternParams.initY),
-                new Vec2D(patternParams.initX, patternParams.initY),
+            controlPairs: [
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
+                {
+                    point: new Vec2D(patternParams.initX, patternParams.initY),
+                    pointAS: {
+                        x: String(patternParams.initX),
+                        y: String(patternParams.initY),
+                    },
+                },
             ],
             pause: 0,
             period: 60,
@@ -185,7 +228,8 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
         toggleable: Boolean = false,
         dependentParam: string = ''
     ) => {
-        const updateParam = (val: number) => {
+        const updateParam = (valStr: string, val: number) => {
+            patternParamsAsStrings[param] = valStr;
             patternParams[param] = val;
             preFreezeParams[param] = val;
         };
@@ -226,7 +270,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                                     patternParams[param] =
                                         preFreezeParams[param];
                                 }
-                                rerenderer();
+                                updater();
                             }}
                             isDisabled={!editorMode}
                         ></Checkbox>
@@ -235,8 +279,8 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                 <NumberInput
                     size="sm"
                     onChange={(valStr: string, valNum: number) => {
-                        updateParam(valNum);
-                        rerenderer();
+                        updateParam(valStr, valNum);
+                        updater();
                     }}
                     min={min}
                     max={max}
@@ -244,8 +288,8 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                     variant="filled"
                     isDisabled={
                         isInvalid || Boolean(disabledByExternal!) || !editorMode
-                    } // TypeScript moment ????
-                    defaultValue={String(patternParams[param] as number)}
+                    }
+                    value={patternParamsAsStrings[param]}
                 >
                     <NumberInputField />
                 </NumberInput>
@@ -282,7 +326,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                         if (patternParams.hasOwnProperty(param)) {
                             patternParams[param] = e.target.checked;
                         }
-                        rerenderer();
+                        updater();
                     }}
                     isDisabled={Boolean(disabledByExternal) || !editorMode}
                     size="lg"
@@ -299,21 +343,22 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
         Ellipse: (
             <EllipsePathEditor
                 params={patternParams.EPParams}
-                rerenderer={rerenderer}
+                updater={updater}
                 enabled={editorMode}
             ></EllipsePathEditor>
         ),
         Line: (
             <LinePathEditor
                 params={patternParams.LPParams}
-                rerenderer={rerenderer}
+                updater={updater}
                 enabled={editorMode}
             ></LinePathEditor>
         ),
         Bezier: (
             <BezierPathEditor
                 params={patternParams.BPParams}
-                rerenderer={rerenderer}
+                paramsAS={patternParams.PParamsAsStrings}
+                updater={updater}
                 enabled={editorMode}
             ></BezierPathEditor>
         ),
@@ -520,7 +565,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                         if (value !== 'None')
                             patternParams[PATH_TYPE_TO_PARAM[value]] =
                                 defaultPathParams[PATH_TYPE_TO_PARAM[value]];
-                        rerenderer();
+                        updater();
                     }}
                     isDisabled={!editorMode}
                 >

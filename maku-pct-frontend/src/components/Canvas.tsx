@@ -6,8 +6,15 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import { pathType, Pattern, PatternArgs } from './maku-classes/Pattern';
-import Vec2D from './maku-classes/Vec2D';
+import {
+    pathType,
+    Pattern,
+    PatternArgs,
+    PointStringPair,
+} from '../maku-classes/Pattern';
+import Vec2D from '../maku-classes/Vec2D';
+import { createDebouncedFunction } from '../utils/utils';
+import { StringMap } from '../views/EditorPage';
 
 type distanceChecker = (x: number, y: number) => boolean;
 type updateFn = (dx: number, dy: number) => void;
@@ -17,19 +24,21 @@ interface CanvasProps {
     height: number;
     patterns: PatternArgs[];
     editorParamsList: PatternArgs[];
+    editorParamsAsStringsList: StringMap[];
     editorMode: Boolean;
-    applyEditorChanges: () => void;
+    updater: Function;
 }
 
 interface Selectable {
     pos: Vec2D;
     near: distanceChecker;
+    radius: number;
     update: updateFn;
 }
 
 const Canvas: React.FC<any> = (props: CanvasProps) => {
     const [patterns, setPatterns] = useState<Pattern[]>([]);
-    const { width, height, editorMode } = props;
+    const { width, height, editorMode, updater } = props;
     console.log(width, height);
 
     const canvasRef: RefObject<HTMLCanvasElement> =
@@ -47,14 +56,14 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         const rect = canvas.getBoundingClientRect();
         let x1 = xScale * (x - rect.left) - width / 2;
         let y1 = -yScale * (y - rect.top) + height / 2;
-        return new Vec2D(x1, y1);
+        return new Vec2D(Math.round(x1), Math.round(y1));
     };
 
     const makeNearChecker = useCallback(
         (item: Selectable, xScale: number, yScale: number) => {
             return (x: number, y: number) => {
                 const mousePos = viewToCanvasTransform(x, y, xScale, yScale);
-                return item.pos.distTo(mousePos) < 25;
+                return item.pos.distTo(mousePos) < item.radius;
             };
         },
         [viewToCanvasTransform]
@@ -66,57 +75,59 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         const rect = canvas.getBoundingClientRect();
         const xScale = width / rect.width;
         const yScale = height / rect.height;
-        for (let params of props.editorParamsList) {
+        for (let i in props.editorParamsList) {
+            let [params, paramsAsStrings] = [
+                props.editorParamsList[i],
+                props.editorParamsAsStringsList[i],
+            ];
             const sourceItem: Selectable = {
                 pos: new Vec2D(params.initX, params.initY),
+                radius: 15,
                 near: () => true,
                 update: () => null,
             };
             sourceItem.near = makeNearChecker(sourceItem, xScale, yScale);
-            sourceItem.update = (dx: number, dy: number) => {
-                params.initX += xScale * dx;
-                params.initY -= yScale * dy;
-                sourceItem.pos = new Vec2D(params.initX, params.initY);
+            sourceItem.update = (x: number, y: number) => {
+                const mousePos = viewToCanvasTransform(x, y, xScale, yScale);
+                [params.initX, params.initY] = [mousePos.x, mousePos.y];
+                [paramsAsStrings.initX, paramsAsStrings.initY] = [
+                    String(mousePos.x),
+                    String(mousePos.y),
+                ];
+                sourceItem.pos = mousePos;
             };
             ret.push(sourceItem);
+            let allPoints: PointStringPair[];
             if (params.pathType === pathType.Line) {
-                for (let point of params.LPParams!.points) {
-                    const item: Selectable = {
-                        pos: point,
-                        near: () => true,
-                        update: () => null,
-                    };
-                    item.near = makeNearChecker(item, xScale, yScale);
-                    item.update = (dx: number, dy: number) => {
-                        point.x += xScale * dx;
-                        point.y -= yScale * dy;
-                    };
-                    ret.push(item);
-                }
+                allPoints = params.LPParams!.pairs;
             } else if (params.pathType === pathType.Bezier) {
-                for (let point of params.BPParams!.points) {
+                allPoints = [
+                    ...params.BPParams!.pairs,
+                    ...params.BPParams!.controlPairs,
+                ];
+            }
+            if (typeof allPoints! !== 'undefined') {
+                for (let pair of allPoints) {
+                    const { point, pointAS } = pair;
                     const item: Selectable = {
                         pos: point,
+                        radius: 12,
                         near: () => true,
                         update: () => null,
                     };
                     item.near = makeNearChecker(item, xScale, yScale);
-                    item.update = (dx: number, dy: number) => {
-                        point.x += xScale * dx;
-                        point.y -= yScale * dy;
-                    };
-                    ret.push(item);
-                }
-                for (let point of params.BPParams!.controlPoints) {
-                    const item: Selectable = {
-                        pos: point,
-                        near: () => true,
-                        update: () => null,
-                    };
-                    item.near = makeNearChecker(item, xScale, yScale);
-                    item.update = (dx: number, dy: number) => {
-                        point.x += xScale * dx;
-                        point.y -= yScale * dy;
+                    item.update = (x: number, y: number) => {
+                        const mousePos = viewToCanvasTransform(
+                            x,
+                            y,
+                            xScale,
+                            yScale
+                        );
+                        [point.x, point.y] = [mousePos.x, mousePos.y];
+                        [pointAS.x, pointAS.y] = [
+                            String(mousePos.x),
+                            String(mousePos.y),
+                        ];
                     };
                     ret.push(item);
                 }
@@ -161,7 +172,6 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
     const update = () => {
         const canvas: HTMLCanvasElement = canvasRef.current!;
         const ctx = canvas!.getContext('2d')!;
-        // console.log(getFrameRate());
         draw(ctx, canvas);
         animationRequestID = requestAnimationFrame(update);
     };
@@ -197,21 +207,42 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
                         break;
                     case pathType.Line:
                         updatedParams.LPParams = { ...params.LPParams! };
-                        updatedParams.LPParams.points =
-                            updatedParams.LPParams.points.map((point) =>
-                                transformPosVec(point)
-                            );
+                        updatedParams.LPParams.pairs =
+                            updatedParams.LPParams.pairs.map((pair) => {
+                                const npoint = transformPosVec(pair.point);
+                                return {
+                                    point: npoint,
+                                    pointAS: {
+                                        x: String(npoint.x),
+                                        y: String(npoint.y),
+                                    },
+                                };
+                            });
                         break;
                     case pathType.Bezier:
                         updatedParams.BPParams = { ...params.BPParams! };
-                        updatedParams.BPParams.points =
-                            updatedParams.BPParams.points.map((point) =>
-                                transformPosVec(point)
-                            );
-                        updatedParams.BPParams.controlPoints =
-                            updatedParams.BPParams.controlPoints.map((point) =>
-                                transformPosVec(point)
-                            );
+                        updatedParams.BPParams.pairs =
+                            updatedParams.BPParams.pairs.map((pair) => {
+                                const npoint = transformPosVec(pair.point);
+                                return {
+                                    point: npoint,
+                                    pointAS: {
+                                        x: String(npoint.x),
+                                        y: String(npoint.y),
+                                    },
+                                };
+                            });
+                        updatedParams.BPParams.controlPairs =
+                            updatedParams.BPParams.controlPairs.map((pair) => {
+                                const npoint = transformPosVec(pair.point);
+                                return {
+                                    point: npoint,
+                                    pointAS: {
+                                        x: String(npoint.x),
+                                        y: String(npoint.y),
+                                    },
+                                };
+                            });
                         break;
                 }
                 return new Pattern(updatedParams);
@@ -232,6 +263,7 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext('2d')!;
         selectables.current = getSelectables();
+        editorPatterns.current = paramsListToPatterns(props.editorParamsList);
         canvas.addEventListener('mousedown', handleMouseDown);
         canvas.addEventListener('mouseup', handleMouseUp);
         canvas.addEventListener('mousemove', handleMouseMove);
@@ -243,12 +275,15 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         canvas.removeEventListener('mousedown', handleMouseDown);
         canvas.removeEventListener('mouseup', handleMouseUp);
         canvas.removeEventListener('mousemove', handleMouseMove);
-        console.log('boggers');
     };
+
+    const debouncedParamUpdater = useCallback(
+        createDebouncedFunction(updater, 100),
+        [updater, createDebouncedFunction]
+    );
 
     const handleMouseDown = (e: MouseEvent) => {
         e.preventDefault();
-        console.log('clique');
         for (let item of selectables.current) {
             if (item.near(e.clientX, e.clientY)) {
                 selectedItem.current = item;
@@ -268,10 +303,11 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
         const ctx = canvas.getContext('2d')!;
         e.preventDefault();
         if (selectedItem.current !== null) {
-            selectedItem.current.update(e.movementX, e.movementY);
+            selectedItem.current.update(e.clientX, e.clientY);
             editorPatterns.current = paramsListToPatterns(
                 props.editorParamsList
             );
+            debouncedParamUpdater();
         }
         drawEditorFrame(ctx, canvas);
     };

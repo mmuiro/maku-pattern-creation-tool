@@ -9,54 +9,82 @@ import {
     useBreakpointValue,
 } from '@chakra-ui/react';
 import React from 'react';
-import { BPParams } from '../../maku-classes/Pattern';
+import { BPParams, SVec2D } from '../../maku-classes/Pattern';
 import Vec2D from '../../maku-classes/Vec2D';
 
 interface BPEditorProps {
     params: BPParams;
-    rerenderer: Function;
+    updater: Function;
     enabled: Boolean;
 }
 
 const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
-    const { params, rerenderer, enabled } = props;
-    const { points, controlPoints, idList } = params;
-    const canRemove = params.points.length > 2;
+    const { params, updater, enabled } = props;
+    let { pairs, controlPairs, idList } = params;
+    const [points, pointsAS, controlPoints, controlPointsAS]: [
+        Vec2D[],
+        SVec2D[],
+        Vec2D[],
+        SVec2D[]
+    ] = [[], [], [], []];
+    for (let pair of pairs) {
+        points.push(pair.point);
+        pointsAS.push(pair.pointAS);
+    }
+    for (let pair of controlPairs) {
+        controlPoints.push(pair.point);
+        controlPointsAS.push(pair.pointAS);
+    }
+    const canRemove = params.pairs.length > 2;
 
     const createRemovePoint = (i: number) => (e: any) => {
-        points.splice(i, 1);
-        controlPoints.splice(i, 1);
+        params.pairs.splice(i, 1);
+        params.controlPairs.splice(i, 1);
         idList.splice(i, 1);
-        rerenderer();
+        updater();
     };
 
     const createHandleChangePointX =
         (i: number) => (vStr: string, vNum: number) => {
             points[i].x = vNum;
+            pointsAS[i].x = vStr;
+            updater();
         };
 
     const createHandleChangePointY =
         (i: number) => (vStr: string, vNum: number) => {
             points[i].y = vNum;
+            pointsAS[i].y = vStr;
+            updater();
         };
 
     const createHandleChangeControlPointX =
         (i: number) => (vStr: string, vNum: number) => {
             controlPoints[i].x = vNum;
+            controlPointsAS[i].x = vStr;
+            updater();
         };
 
     const createHandleChangeControlPointY =
         (i: number) => (vStr: string, vNum: number) => {
             controlPoints[i].y = vNum;
+            controlPointsAS[i].y = vStr;
+            updater();
         };
 
     const handleAddPair = () => {
         const lastPoint = points[points.length - 1];
         const lastCPoint = controlPoints[controlPoints.length - 1];
-        points.push(lastPoint.copy());
-        controlPoints.push(lastCPoint.copy());
+        params.pairs.push({
+            point: lastPoint.copy(),
+            pointAS: { x: String(lastPoint.x), y: String(lastPoint.y) },
+        });
+        params.controlPairs.push({
+            point: lastCPoint.copy(),
+            pointAS: { x: String(lastCPoint.x), y: String(lastCPoint.y) },
+        });
         idList.push(Number(idList[idList.length - 1]) + 1);
-        rerenderer();
+        updater();
     };
 
     const colResponsive = (i: number, w: number, s: number = 1) =>
@@ -73,9 +101,9 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     size="sm"
                     variant="filled"
                     defaultValue={params.period}
-                    onChange={(vStr: string, vNum: number) =>
-                        (params.period = vNum)
-                    }
+                    onChange={(vStr: string, vNum: number) => {
+                        params.period = vNum;
+                    }}
                     isDisabled={!enabled}
                 >
                     <NumberInputField />
@@ -87,9 +115,9 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                     size="sm"
                     variant="filled"
                     defaultValue={params.pause}
-                    onChange={(vStr: string, vNum: number) =>
-                        (params.pause = vNum)
-                    }
+                    onChange={(vStr: string, vNum: number) => {
+                        params.pause = vNum;
+                    }}
                     isDisabled={!enabled}
                 >
                     <NumberInputField />
@@ -114,6 +142,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].x}
                             onChange={createHandleChangePointX(i)}
+                            value={pointsAS[i].x}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />
@@ -126,6 +155,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={points[i].y}
                             onChange={createHandleChangePointY(i)}
+                            value={pointsAS[i].y}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />
@@ -138,6 +168,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={controlPoints[i].x}
                             onChange={createHandleChangeControlPointX(i)}
+                            value={controlPointsAS[i].x}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />
@@ -150,6 +181,7 @@ const BezierPathEditor: React.FC<any> = (props: BPEditorProps) => {
                             variant="filled"
                             defaultValue={controlPoints[i].y}
                             onChange={createHandleChangeControlPointY(i)}
+                            value={controlPointsAS[i].y}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />

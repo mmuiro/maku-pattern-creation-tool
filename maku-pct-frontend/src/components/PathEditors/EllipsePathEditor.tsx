@@ -15,7 +15,7 @@ import { EPParams } from '../../maku-classes/Pattern';
 
 interface EPEditorProps {
     params: EPParams;
-    rerenderer: Function;
+    updater: Function;
     enabled: Boolean;
 }
 
@@ -109,7 +109,7 @@ const EllipsePathEditor: React.FC<any> = (props: EPEditorProps) => {
                     value={params.direction}
                     onChange={(value) => {
                         params.direction = parseInt(value);
-                        props.rerenderer();
+                        props.updater();
                     }}
                     isDisabled={!enabled}
                 >

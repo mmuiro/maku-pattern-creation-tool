@@ -11,14 +11,15 @@ import React, { useRef } from 'react';
 import { Pattern, PatternArgs } from '../maku-classes/Pattern';
 import { useState } from 'react';
 import { ColorProps, PatternEditor } from '../components/PatternEditor';
-import { BooleanMap } from '../views/EditorPage';
+import { BooleanMap, StringMap } from '../views/EditorPage';
 import Color from '../maku-classes/Color';
 import { AddIcon, PlusSquareIcon } from '@chakra-ui/icons';
 
 interface EditorMenuProps {
     addPatternFn: Function;
-    updatePatterns: Function;
+    updater: Function;
     patternParamsList: React.MutableRefObject<PatternArgs[]>;
+    patternParamsAsStringsList: React.MutableRefObject<StringMap[]>;
     patternCheckedParamsList: React.MutableRefObject<BooleanMap[]>;
     patternPreFreezeParamsList: React.MutableRefObject<PatternArgs[]>;
     children?: React.ReactNode;
@@ -27,15 +28,10 @@ interface EditorMenuProps {
 }
 
 const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
-    const [rerender, setter] = useState<Boolean>(false);
     const [displayColorPickers, setDisplayColorPickers] = useState<Boolean[]>(
         props.patternParamsList.current.map(() => false)
     );
     const keys = useRef<React.Key[]>([0]);
-
-    const forceRerender = () => {
-        setter(!rerender);
-    };
 
     const createHandleRemove = (i: number) => (e: any) => {
         e.preventDefault();
@@ -43,7 +39,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
         props.patternCheckedParamsList.current.splice(i, 1);
         props.patternPreFreezeParamsList.current.splice(i, 1);
         keys.current.splice(i, 1);
-        forceRerender();
+        props.updater();
     };
 
     const handleAdd = (e: any) => {
@@ -54,7 +50,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
 
     const handleApplyChanges = (e: any) => {
         e.preventDefault();
-        props.updatePatterns();
+        props.updater();
     };
 
     const createColorSetter = (i: number) => {
@@ -71,7 +67,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
                 color.b,
                 color.a
             );
-            forceRerender();
+            props.updater();
         };
     };
 
@@ -119,13 +115,16 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
                     <React.Fragment key={keys.current[i]}>
                         <PatternEditor
                             patternParams={props.patternParamsList.current[i]}
+                            patternParamsAsStrings={
+                                props.patternParamsAsStringsList.current[i]
+                            }
                             preFreezeParams={
                                 props.patternPreFreezeParamsList.current[i]
                             }
                             checkedParams={
                                 props.patternCheckedParamsList.current[i]
                             }
-                            rerenderer={forceRerender}
+                            updater={props.updater}
                             colorSetter={createColorSetter(i)}
                             DCP={displayColorPickers[i]}
                             setDCP={createDisplaySetter(i)}
@@ -152,7 +151,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
                     colorScheme="twitter"
                     variant="ghost"
                 >
-                    {props.editorMode ? 'Apply Changes' : 'Enable Editor'}
+                    {props.editorMode ? 'Disable Editor' : 'Enable Editor'}
                 </Button>
                 <IconButton
                     aria-label="Add Pattern"

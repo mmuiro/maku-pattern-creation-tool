@@ -57,5 +57,22 @@ export default class LinePath implements Path {
         return this.lookup[t % this.period];
     }
 
-    draw(ctx: CanvasRenderingContext2D): void {}
+    draw(ctx: CanvasRenderingContext2D): void {
+        ctx.save();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.moveTo(this.points[0].x, this.points[0].y);
+        ctx.beginPath();
+        for (let point of this.points) {
+            ctx.lineTo(point.x, point.y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = 'rgb(22, 94, 201)';
+        for (let point of this.points) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 12, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
 }
