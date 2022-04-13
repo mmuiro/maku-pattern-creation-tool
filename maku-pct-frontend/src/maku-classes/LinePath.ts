@@ -34,6 +34,7 @@ export default class LinePath implements Path {
                 cumulPrevSegDist = cumulSegLengths[segI];
                 segI++;
             }
+            if (segI == this.points.length - 1) return;
             if (this.points[segI].distTo(this.points[segI + 1]) === 0) {
                 this.lookup.push(this.points[segI]);
             } else {

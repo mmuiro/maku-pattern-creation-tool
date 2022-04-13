@@ -39,7 +39,6 @@ interface Selectable {
 const Canvas: React.FC<any> = (props: CanvasProps) => {
     const [patterns, setPatterns] = useState<Pattern[]>([]);
     const { width, height, editorMode, updater } = props;
-    console.log(width, height);
 
     const canvasRef: RefObject<HTMLCanvasElement> =
         useRef<HTMLCanvasElement>(null);
@@ -290,7 +289,6 @@ const Canvas: React.FC<any> = (props: CanvasProps) => {
                 break;
             }
         }
-        console.log(selectedItem.current);
     };
 
     const handleMouseUp = (e: MouseEvent) => {

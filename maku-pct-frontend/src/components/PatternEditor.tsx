@@ -494,6 +494,7 @@ export const PatternEditor: React.FC<any> = (props: PatternEditorProps) => {
                         color={patternParams.color}
                         display={DCP}
                         setDisplay={setDCP}
+                        enabled={editorMode}
                     />
                     {createNumericInputElement(
                         'bulletRadius',

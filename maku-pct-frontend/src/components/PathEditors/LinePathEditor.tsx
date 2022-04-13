@@ -34,11 +34,13 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
     const createHandleChangePointX =
         (i: number) => (vStr: string, vNum: number) => {
             points[i].x = vNum;
+            updater();
         };
 
     const createHandleChangePointY =
         (i: number) => (vStr: string, vNum: number) => {
             points[i].y = vNum;
+            updater();
         };
 
     const handleAddPoint = () => {
@@ -91,8 +93,8 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                         <NumberInput
                             size="sm"
                             variant="filled"
-                            defaultValue={points[i].x}
                             onChange={createHandleChangePointX(i)}
+                            value={pointsAS[i].x}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />
@@ -103,8 +105,8 @@ const LinePathEditor: React.FC<any> = (props: LPEditorProps) => {
                         <NumberInput
                             size="sm"
                             variant="filled"
-                            defaultValue={points[i].y}
                             onChange={createHandleChangePointY(i)}
+                            value={pointsAS[i].y}
                             isDisabled={!enabled}
                         >
                             <NumberInputField />

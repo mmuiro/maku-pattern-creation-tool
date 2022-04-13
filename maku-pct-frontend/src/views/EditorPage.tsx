@@ -67,7 +67,6 @@ const EditorPage: React.FC<any> = () => {
     })!;
 
     const baseSize = 1600;
-    console.log(canvasAR);
     return (
         <Flex h="100vh" direction={{ base: 'column', xl: 'row' }}>
             <Box

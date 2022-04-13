@@ -9,10 +9,13 @@ interface ColorPickerProps {
     setColor: Function;
     display: Boolean;
     setDisplay: Function;
+    enabled: Boolean;
 }
 
 const ColorPicker: React.FC<any> = (props: ColorPickerProps) => {
-    let { color, setColor, display, setDisplay } = props;
+    let { color, setColor, display, setDisplay, enabled } = props;
+
+    if (!enabled && display) setDisplay(false);
 
     const handleChange: ColorChangeHandler = (
         resColor: ColorResult,
@@ -47,7 +50,7 @@ const ColorPicker: React.FC<any> = (props: ColorPickerProps) => {
                     bgColor={`rgba(${color.r},${color.g},${color.b},${color.a})`}
                     h={5}
                     flexGrow={1}
-                    onClick={() => setDisplay(!display)}
+                    onClick={() => (enabled ? setDisplay(!display) : 0)}
                     rounded="sm"
                 ></Box>
             </Flex>

@@ -36,6 +36,7 @@ const EditorMenu: React.FC<any> = (props: EditorMenuProps) => {
     const createHandleRemove = (i: number) => (e: any) => {
         e.preventDefault();
         props.patternParamsList.current.splice(i, 1);
+        props.patternParamsAsStringsList.current.splice(i, 1);
         props.patternCheckedParamsList.current.splice(i, 1);
         props.patternPreFreezeParamsList.current.splice(i, 1);
         keys.current.splice(i, 1);
